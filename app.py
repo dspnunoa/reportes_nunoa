@@ -1,12 +1,7 @@
 import streamlit as st
-import pandas as pd
-import folium
-from streamlit_folium import st_folium
-import plotly.express as px
-
 st.set_page_config(layout="wide")
 
-## Aquí se carga el archivo CSV ##
+## Configuración inicial aplicación ##
 
 st.set_page_config(
     page_title="Inicio",
