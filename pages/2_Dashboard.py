@@ -235,7 +235,6 @@ fig_heatmap.update_layout(
 )
 st.plotly_chart(fig_heatmap, width='stretch')
 
-
 ## GRÁFICO XI ##
 df['fecha_completa'] = pd.to_datetime(df['FECHA Y HORA'])
 df['hora'] = df['fecha_completa'].dt.hour
