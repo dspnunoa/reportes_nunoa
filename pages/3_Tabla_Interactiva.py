@@ -120,4 +120,4 @@ if ffinal:
     
 st.subheader("Resultados")
 st.write(f"Total de registros: {len(df_filtrado)}")
-st.dataframe(df_filtrado[df_filtrado.columns[2:25]], width='stretch')
+st.dataframe(df_filtrado[df_filtrado.columns[2:26]], width='stretch')
