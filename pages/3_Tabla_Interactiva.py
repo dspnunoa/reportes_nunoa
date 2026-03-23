@@ -60,7 +60,8 @@ with col4:
         ltipo = dop_categoria[categoria]
         tipo = st.selectbox("Tipo", ltipo, index=None,placeholder='Elige')
     else:
-        tipo = st.selectbox("Tipo", op_tipo, index=None,placeholder='Elige')
+        #tipo = st.selectbox("Tipo", op_tipo, index=None,placeholder='Elige')
+        tipo = st.multiselect("Tipo", op_tipo,placeholder='Elige')
 with col5:
     shinicio = st.selectbox("Inicio",options=opi_hinicio,format_func=lambda o: o[1], index=None, placeholder='Elige')
     if shinicio:
@@ -100,7 +101,7 @@ if cuadrante:
 if categoria:
     df_filtrado = df_filtrado[df_filtrado['CATEGORIA'] == categoria]
 if tipo:
-    df_filtrado = df_filtrado[df_filtrado['TIPO DE PROCEDIMIENTO'] == tipo]
+    df_filtrado = df_filtrado[df_filtrado['TIPO DE PROCEDIMIENTO'].isin(tipo)]
 if mes:
     df_filtrado = df_filtrado[df_filtrado['FECHA Y HORA'].dt.month == mes]
 if ano:
