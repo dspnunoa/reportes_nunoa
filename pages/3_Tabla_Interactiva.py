@@ -58,7 +58,7 @@ with col3:
 with col4:
     if categoria:
         ltipo = dop_categoria[categoria]
-        tipo = st.multiselect("Tipo", op_tipo,placeholder='Elige')
+        tipo = st.multiselect("Tipo", ltipo,placeholder='Elige')
     else:
         tipo = st.multiselect("Tipo", op_tipo,placeholder='Elige')
 with col5:
