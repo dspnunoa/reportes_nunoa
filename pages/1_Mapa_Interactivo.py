@@ -70,9 +70,9 @@ with col3:
 with col4:
     if categoria:
         ltipo = dop_categoria[categoria]
-        tipo = st.selectbox("Tipo", ltipo, index=None,placeholder='Elige')
+        tipo = st.multiselect("Tipo", ltipo,placeholder='Elige')
     else:
-        tipo = st.selectbox("Tipo", op_tipo, index=None,placeholder='Elige')
+        tipo = st.multiselect("Tipo", op_tipo,placeholder='Elige')
 with col5:
     shinicio = st.selectbox("Inicio",options=opi_hinicio,format_func=lambda o: o[1], index=None, placeholder='Elige')
     if shinicio:
@@ -125,7 +125,7 @@ if st.button("Visualizar Mapa"):
                     if categoria and categoria != lrow[2]:
                         cumple_filtros = False
                     
-                    if tipo and tipo != lrow[3]:
+                    if tipo and lrow[3] not in tipo:
                         cumple_filtros = False
                     
                     if ano and ano != date_object.year:
