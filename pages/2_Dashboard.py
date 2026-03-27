@@ -40,6 +40,46 @@ if finicio and ffinal:
     df = dfr[(dfr['FECHA Y HORA'].dt.date >= finicio) & (dfr['FECHA Y HORA'].dt.date <= ffinal)].copy()
 else:
     df = dfr.copy()
+
+st.subheader("ℹ️ Métricas Principales")
+met1, met2, met3, met4 = st.columns(4)
+with met1:
+    st.metric("Número de Reportes",f"{df.shape[0]}")
+with met2:
+    cuad_metric = df['CUADRANTE'].value_counts().index[0]
+    st.metric("Cuadrante con más Reportes",cuad_metric,delta=f"{df['CUADRANTE'].value_counts().iloc[0]}")
+with met3:
+    tipo_metric = df['TIPO DE PROCEDIMIENTO'].value_counts().index[0]
+    st.metric("Procedimiento más común",tipo_metric,delta=f"{df['TIPO DE PROCEDIMIENTO'].value_counts().iloc[0]}",width="content")
+with met4:
+    hora_metric = df['FECHA Y HORA'].dt.hour.value_counts().index[0]
+    st.metric("Horario Punta",f"{int(hora_metric):02d}:00-{int(hora_metric+1):02d}:00",delta=df['FECHA Y HORA'].dt.hour.value_counts().iloc[0],width="content")
+
+met5, met6, met7, met8 = st.columns(4)
+with met5:
+    fecha_metric = df['FECHA Y HORA'].dt.date.value_counts().index[0]
+    st.metric("Día con más reportes",f"{fecha_metric}",delta=df['FECHA Y HORA'].dt.date.value_counts().iloc[0])
+with met6:
+    st.metric("Procedimientos",df['TIPO DE PROCEDIMIENTO'].nunique())
+with met7:
+    dias_cubiertos = ((df['FECHA Y HORA'].max() - df['FECHA Y HORA'].min()).days)+1
+    st.metric("Días Cubiertos",dias_cubiertos)
+with met8:
+    promedio_diario = round(len(df) / max(dias_cubiertos, 1), 1)
+    st.metric("Promedio Diario",f"{promedio_diario} reportes/día")
+
+met9, met10, met11, met12 = st.columns(4)
+with met9:
+    calle_metric = df['CALLE'].value_counts().index[0]
+    st.metric("Calle con más Reportes",calle_metric,delta=f"{df['CALLE'].value_counts().iloc[0]}")
+with met10:
+    lugar_metric = df['LUGAR PÚBLICO /  PRIVADO'].value_counts().index[0]
+    st.metric("Tipo de lugar más común",lugar_metric,delta=f"{df['LUGAR PÚBLICO /  PRIVADO'].value_counts().iloc[0]}")
+with met11:
+    dia_metric = df['FECHA Y HORA'].dt.day_name(locale='es_ES').value_counts().index[0]
+    st.metric("Día de la semana con más Reportes",dia_metric,delta=f"{df['FECHA Y HORA'].dt.day_name().value_counts().iloc[0]}")
+with met12:
+    st.metric("Métrica por añadir",35,delta=-10)
 ## COM FUNCIONES ##
 def get_rango_horario(hora):
     """Convierte hora (0-23) en rango de 4 horas"""
