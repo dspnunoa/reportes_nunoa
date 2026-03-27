@@ -76,7 +76,7 @@ with met10:
     lugar_metric = df['LUGAR PÚBLICO /  PRIVADO'].value_counts().index[0]
     st.metric("Tipo de lugar más común",lugar_metric,delta=f"{df['LUGAR PÚBLICO /  PRIVADO'].value_counts().iloc[0]}")
 with met11:
-    dia_metric = df['FECHA Y HORA'].dt.day_name(locale='es_ES').value_counts().index[0]
+    dia_metric = df['FECHA Y HORA'].dt.day_name().value_counts().index[0]
     st.metric("Día de la semana con más Reportes",dia_metric,delta=f"{df['FECHA Y HORA'].dt.day_name().value_counts().iloc[0]}")
 with met12:
     st.metric("Métrica por añadir",35,delta=-10)
