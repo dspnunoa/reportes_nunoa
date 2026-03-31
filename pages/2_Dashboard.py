@@ -27,7 +27,7 @@ with col4:
 
 st.markdown("---")
 ## Cargo el excel ##
-dfr = pd.read_csv('info.csv', sep=';')
+dfr = pd.read_csv('info.csv', sep=';', engine='python')
 dfr['FECHA Y HORA'] = pd.to_datetime(dfr['FECHA Y HORA'])
 ## Agrego la opción de elegir un período ##
 col1, col2 = st.columns(2)

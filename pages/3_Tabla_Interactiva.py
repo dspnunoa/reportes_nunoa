@@ -87,7 +87,7 @@ with col10:
     ffinal = st.date_input("Hasta", value=None)
 
 ## Cargo el archivo .csv ##
-df = pd.read_csv('info.csv', sep=';')
+df = pd.read_csv('info.csv', sep=';', engine='python')
 ###########################
 #df = df.dropna(subset=['ID ASIGNADO /TICKET'])
 df_filtrado = df.copy()
