@@ -13,6 +13,10 @@ df = pd.read_csv(new_file+'.csv',sep=';',engine='python')
 
 
 ## Creo funciones que corrigen los errores ##
+def fcalle(valor):
+    if valor == 'Seguridad':
+        return ''
+    return str(valor).title()
 def fcuadrante(valor):
     if valor == '118':
         return 'Nro. 118'
@@ -72,6 +76,7 @@ df = df[['NRO','ID ASIGNADO /TICKET','FECHA Y HORA','OPERADOR','CANAL DE INGRESO
 ## Aplico las funciones al nuevo archivo ##
 # df['CUADRANTE'] = df['CUADRANTE'].apply(fcuadrante)
 # df['CANAL DE INGRESO'] = df['CANAL DE INGRESO'].apply(fcanalingreso)
+df['CALLE'] = df['CALLE'].apply(fcalle)
 
 ## Imprimo los elementos diferentes que hay en un campo en especifico (para corregir errores) ##
 lfinal = ['7X3 delitos violentos', 'Accidente de tránsito (choque/colisión/atropello)', 'Acera en mal estado', 'Actividad sospechosa', 'Agresión', 'Alarma activada', 'Alcantarilla colapsada', 'Amenazas', 'Anegamiento de calle y paso bajo nivel', 'Anegamiento domicilios', 'Apoyo a Bomberos', 'Apoyo a Carabineros', 'Apoyo a SAMU', 'Artefacto explosivo o paquete sospechoso', 'Botar chicle, colillas o desechos en la vía pública', 'Cables a baja altura / Cables cortados', 'Caida de arbol', 'Carpa o Ruco en BNUP', 'Circuito y luminarias dañadas', 'Comercio ambulante Ilegal', 'Consumo de alcohol en vía pública', 'Consumo de drogas', 'Control de Transito', 'Corte energía eléctrica', 'Corte suministro de agua potable', 'Daños propiedad privada', 'Daños propiedad pública', 'Delito sexual', 'Desganche arbolado', 'Detención ciudadana', 'Detenidos', 'Disparos', 'Disturbios', 'Ebriedad', 'Emanación de gas/ Derrame o Materiales peligrosos', 
@@ -90,6 +95,4 @@ lfinal = ['7X3 delitos violentos', 'Accidente de tránsito (choque/colisión/atr
 
 ## Lo guardo en un nuevo archivo que tendrá el mismo nombre que el original pero + 'P' al final, para poder diferenciarlo ##
 #df.to_csv(new_file+'P.csv', index=False,sep=';')
-for index, row in df.iterrows():
-    if str(row['FECHA Y HORA']) == 'nan':
-        print(row['NRO']) 
+
