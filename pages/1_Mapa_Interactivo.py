@@ -97,12 +97,18 @@ with col9:
     finicio = st.date_input("Desde", value=None)
 with col10:
     ffinal = st.date_input("Hasta", value=None)
-
+######
+col11, col12, col13, col14, col15 = st.columns(5)
+with col11:
+    calle = st.text_input("Calle",'',placeholder="Elige")
+with col12:
+    palabra = st.text_input("Palabra Clave",'',placeholder="Elige")
+######
 
 if st.button("Visualizar Mapa"):
 
     # Verificar si al menos un filtro está seleccionado
-    if not any([ingreso, cuadrante, categoria, tipo, hinicio, hfinal, mes, ano, finicio, ffinal]):
+    if not any([ingreso, cuadrante, categoria, tipo, hinicio, hfinal, mes, ano, finicio, ffinal, calle, palabra]):
         st.error("Por favor selecciona al menos un filtro")
     else:
         st.session_state.mostrar_mapa = True
@@ -136,6 +142,11 @@ if st.button("Visualizar Mapa"):
                 df_filtrado = df_filtrado[df_filtrado['FECHA Y HORA'].dt.date >= finicio]
             if ffinal:
                 df_filtrado = df_filtrado[df_filtrado['FECHA Y HORA'].dt.date <= ffinal]
+            if calle:
+                df_filtrado = df_filtrado[df_filtrado['CALLE'].str.contains(calle, case=False, na=False) | df_filtrado['CALLE QUE INTERSECTA'].str.contains(calle, case=False, na=False)]
+            if palabra:
+                df_filtrado = df_filtrado[df_filtrado['INFORME'].str.contains(palabra, case=False, na=False) | df_filtrado['DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)'].str.contains(palabra, case=False, na=False)]
+
             for index, row in df_filtrado.iterrows():
                 if len(str(row['COORDENADAS'])) > 3:
                     cords = str(row['COORDENADAS']).split(',')
