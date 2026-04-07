@@ -5,7 +5,7 @@ import pytz
 import streamlit as st
 import time
 from datetime import datetime
-from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.pagesizes import landscape, letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
@@ -39,7 +39,7 @@ with col5:
 st.markdown("---")
 
 st.subheader("Instrucciones de Uso")
-st.markdown(f" 1. Elegir rango de fechas. Por defecto, se elegirá el total del archivo.\n 2. Seleccionar aspectos a analizar.\n 3. Especificar otros.")
+st.markdown(f" 1. Elegir rango de fechas. Por defecto, se elegirá el total del archivo.\n 2. Seleccionar aspectos a analizar.\n 3. COMPLETAR OTROS.")
 ##
 fec1, fec2 = st.columns(2)
 dfr = pd.read_csv('info.csv',sep=';',engine='python',encoding='utf-8')
@@ -48,10 +48,13 @@ with fec1:
     finicio = st.date_input("Fecha inicial:", value=None)
 with fec2:
     ffinal = st.date_input("Fecha final:", value=None)
+
 if finicio and ffinal:
     df = dfr[(dfr['FECHA Y HORA'].dt.date >= finicio) & (dfr['FECHA Y HORA'].dt.date <= ffinal)].copy()
 else:
     df = dfr.copy()
+    finicio = str(df['FECHA Y HORA'].min()).split(' ')[0]
+    ffinal = str(df['FECHA Y HORA'].max()).split(' ')[0]
 ##
 ##
 op_ingreso = ['1445', 'EXTERNO','INTERNO','JEFATURA','OPERADOR CÁMARAS','PROALERT','SOSAFE','OTROS', 'VECINO/A']
@@ -87,25 +90,7 @@ with col4:
     else:
         tipo = st.multiselect("Tipo", op_tipo,placeholder='Elige')
 with col5:
-    shinicio = st.selectbox("Hora Inicio",options=opi_hinicio,format_func=lambda o: o[1], index=None, placeholder='Elige')
-    if shinicio:
-        hinicio = shinicio[0]
-    else:
-        hinicio = None
-with col6:
-    shfinal = st.selectbox("Hora Final",options=opi_hfinal,format_func=lambda o: o[1], index=None, placeholder='Elige')
-    if shfinal:
-        hfinal = shfinal[0]
-    else:
-        hfinal = None
-with col7:
-    smes = st.selectbox("Mes",options=opi_mes,format_func=lambda o: o[1], index=None, placeholder='Elige')
-    if smes:
-        mes = smes[0]
-    else:
-        mes = None
-with col8:
-    ano = st.selectbox("Año", op_ano, index=None,placeholder='Elige')
+    titulo = st.text_input("Título",'',placeholder="Elige")
 
 ##### GRAN FUNCION #####
 def crear_pdf_con_graficos_y_tablas(titulo, metricas, graficos_dict, tablas_dict):
@@ -120,7 +105,7 @@ def crear_pdf_con_graficos_y_tablas(titulo, metricas, graficos_dict, tablas_dict
     """
     
     pdf_buffer = io.BytesIO()
-    doc = SimpleDocTemplate(pdf_buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    doc = SimpleDocTemplate(pdf_buffer, title='Reporte Ñuñoa',pagesize=landscape(letter), topMargin=0.5*inch, bottomMargin=0.5*inch)
     elements = []
     styles = getSampleStyleSheet()
     
@@ -294,12 +279,20 @@ if st.button("📄 Generar PDF"):
             }
             
             # Crear PDF
-            pdf = crear_pdf_con_graficos_y_tablas(
-                f"Reporte de Análisis de Procedimientos: {finicio} a {ffinal}",
-                metricas,
-                graficos,
-                tablas
-            )
+            if titulo:
+                pdf = crear_pdf_con_graficos_y_tablas(
+                    f"{titulo}: {finicio} a {ffinal}",
+                    metricas,
+                    graficos,
+                    tablas
+                )
+            else:
+                pdf = crear_pdf_con_graficos_y_tablas(
+                    f"Reporte de Análisis de Procedimientos: {finicio} a {ffinal}",
+                    metricas,
+                    graficos,
+                    tablas
+                )
             
             # Descargar
             st.download_button(
