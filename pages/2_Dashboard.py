@@ -78,7 +78,7 @@ met9, met10, met11, met12 = st.columns(4)
 with met9:
     calle_metric = df['CALLE'].value_counts().index[0]
     if calle_metric == 'Nan':
-        calle_metric = calle_metric = df['CALLE'].value_counts().index[1]
+        calle_metric = df['CALLE'].value_counts().index[1]
     st.metric("Calle con más Reportes",calle_metric,delta=f"{df['CALLE'].value_counts().iloc[0]}")
 with met10:
     if df['LUGAR PÚBLICO /  PRIVADO'].isnull().all():
