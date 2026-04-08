@@ -1,13 +1,12 @@
 import streamlit as st
-st.set_page_config(layout="wide")
-
 ## Configuración inicial aplicación ##
-
 st.set_page_config(
     page_title="Inicio",
     page_icon="./logo.png",
+    initial_sidebar_state="collapsed",
     layout="wide"
 )
+
 
 st.title("ℹ️ Reportes Procedimientos Central Ñuñoa 2026")
 

@@ -5,6 +5,9 @@ import pytz
 import streamlit as st
 import time
 from datetime import datetime
+from PyPDF2 import PdfReader, PdfWriter
+from reportlab.pdfgen import canvas
+from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import landscape, letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -44,6 +47,8 @@ st.markdown(f" 1. Elegir rango de fechas. Por defecto, se elegirá el total del 
 fec1, fec2 = st.columns(2)
 dfr = pd.read_csv('info.csv',sep=';',engine='python',encoding='utf-8')
 dfr['FECHA Y HORA'] = pd.to_datetime(dfr['FECHA Y HORA'])
+local_tz = pytz.timezone("America/Santiago") 
+now_local = datetime.now(local_tz)
 with fec1:
     finicio = st.date_input("Fecha inicial:", value=None)
 with fec2:
@@ -91,7 +96,18 @@ with col4:
         tipo = st.multiselect("Tipo", op_tipo,placeholder='Elige')
 with col5:
     titulo = st.text_input("Título",'',placeholder="Elige")
-
+with col6:
+    metricas = st.checkbox("Incluir tabla de métricas")
+with col7:
+    registro = st.checkbox("Incluir últimos registros")
+with col8:
+    calle = st.text_input("Calle",'',placeholder="Elige")
+with col9:
+    palabra = st.text_input("Palabra Clave",'',placeholder="Elige")
+if calle:
+    df = df[df['CALLE'].str.contains(calle, case=False, na=False) | df['CALLE QUE INTERSECTA'].str.contains(calle, case=False, na=False)]
+if palabra:
+    df = df[df['INFORME'].str.contains(palabra, case=False, na=False) | df['DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)'].str.contains(palabra, case=False, na=False)]
 ##### GRAN FUNCION #####
 def crear_pdf_con_graficos_y_tablas(titulo, metricas, graficos_dict, tablas_dict):
     """
@@ -116,11 +132,14 @@ def crear_pdf_con_graficos_y_tablas(titulo, metricas, graficos_dict, tablas_dict
         fontSize=24,
         textColor=colors.HexColor('#1f77b4'),
         spaceAfter=20,
+        alignment=TA_CENTER
     )
     
     # Título
     elements.append(Paragraph(titulo, title_style))
     elements.append(Spacer(1, 0.2*inch))
+    elements.append(Paragraph(f"Fecha: {str(now_local.strftime('%Y-%m-%d'))}", styles['Heading2']))
+    elements.append(Spacer(1, 0.1*inch))
     
     # SECCIÓN: MÉTRICAS
     if metricas:
@@ -166,12 +185,13 @@ def crear_pdf_con_graficos_y_tablas(titulo, metricas, graficos_dict, tablas_dict
                 img = Image(img_buffer, width=6*inch, height=3.5*inch)
                 elements.append(img)
                 elements.append(Spacer(1, 0.3*inch))
+                elements.append(PageBreak())
                 
             except Exception as e:
                 elements.append(Paragraph(f"Error al generar gráfico: {nombre_grafico}", styles['Normal']))
                 st.warning(f"Error con gráfico {nombre_grafico}: {e}")
         
-        elements.append(PageBreak())
+        
     
     # SECCIÓN: TABLAS
     if tablas_dict:
@@ -186,9 +206,13 @@ def crear_pdf_con_graficos_y_tablas(titulo, metricas, graficos_dict, tablas_dict
             # Convertir DataFrame a lista (máximo 15 filas por tabla)
             df_truncado = df.head(15)
             data = [df_truncado.columns.tolist()] + df_truncado.values.tolist()
-            
             # Crear tabla
-            table = Table(data)
+            if nombre_tabla == 'Últimos Registros':
+                for element in data[1:]:
+                    element[2] = Paragraph(element[2])
+                table = Table(data,colWidths=[1.5*inch, 1*inch, 5*inch])
+            else:
+                table = Table(data)
             table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f77b4')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -224,13 +248,35 @@ fig_barras = px.bar(
     color_discrete_sequence=['#1f77b4']
 )
 
-fig_pie = px.pie(
-    df.groupby('CATEGORIA').size().reset_index(name='cantidad'),
-    names='CATEGORIA',
-    values='cantidad',
-    title='Distribución por Categoría',
-    color_discrete_sequence=px.colors.sequential.Rainbow
-)
+def pie(filtro):
+    df_pie = df.groupby(filtro).size().reset_index(name='cantidad')
+    titulo = filtro.title()
+    fig_pie = px.pie(
+        df_pie,
+        names=filtro,
+        values='cantidad',
+        title='Reportes por '+titulo,
+        color_discrete_sequence=px.colors.sequential.Rainbow
+    )
+    return fig_pie
+def barra(filtro):
+    if filtro == 'Día de la Semana':
+        counts = df["FECHA Y HORA"].dt.weekday.value_counts()
+    elif filtro == 'Hora':
+        counts = df["FECHA Y HORA"].dt.hour.value_counts()
+    elif filtro == 'CATEGORIA':
+        counts = df["CATEGORIA"].value_counts()
+        filtro = filtro.title()
+    fig_barras = px.bar(
+        counts,
+        title='Reportes por '+filtro,
+        color_discrete_sequence=['#1f77b4']
+    )
+    fig_barras.update_layout(
+        xaxis_title=filtro,
+        yaxis_title='Reportes'
+    )
+    return fig_barras
 
 df['fecha'] = df['FECHA Y HORA'].dt.date
 df_linea = df.groupby('fecha').size().reset_index(name='cantidad')
@@ -246,8 +292,7 @@ fig_linea = px.line(
 )
 
 # ==================== EXPORTAR A PDF ====================
-local_tz = pytz.timezone("America/Santiago") 
-now_local = datetime.now(local_tz)
+
 st.markdown("---")
 st.subheader("📥 Descargar Reporte")
 
@@ -255,19 +300,24 @@ if st.button("📄 Generar PDF"):
     with st.spinner("Generando PDF..."):
         try:
             # Preparar métricas
+            dias_cubiertos = ((df['FECHA Y HORA'].max() - df['FECHA Y HORA'].min()).days)+1
             metricas = {
                 'Total de procedimientos': len(df),
                 'Cuadrante con más reportes': df['CUADRANTE'].value_counts().index[0],
                 'Procedimiento más común': df['TIPO DE PROCEDIMIENTO'].value_counts().index[0],
                 'Hora punta': f"{df['FECHA Y HORA'].dt.hour.value_counts().index[0]}:00" ,
                 'Día con más reportes':df['FECHA Y HORA'].dt.date.value_counts().index[0],
-                'Calle con más reportes': df['CALLE'].value_counts().index[0] if df['CALLE'].value_counts().index[0] != "Nan" else df['CALLE'].value_counts().index[1]
+                'Calle con más reportes': df['CALLE'].value_counts().index[0] if df['CALLE'].value_counts().index[0] != "Nan" else df['CALLE'].value_counts().index[1],
+                'Dias cubiertos': dias_cubiertos,
+                'Promedio diario': round(len(df) / max(dias_cubiertos, 1), 1)
             }
-            
             # Preparar gráficos
             graficos = {
                 'Registros por Cuadrante': fig_barras,
-                'Distribución por Categoría': fig_pie,
+                'Reportes por Hora': barra('Hora'),
+                'Reportes por día de la semana': barra('Día de la Semana'),
+                'Distribución por Categoría': pie('CATEGORIA'),
+                'Distribución por Canal de Ingreso': pie('CANAL DE INGRESO'),
                 'Evolución Temporal': fig_linea,
             }
             
@@ -275,7 +325,7 @@ if st.button("📄 Generar PDF"):
             tablas = {
                 'Top Cuadrantes': df['CUADRANTE'].value_counts().reset_index(name='Cantidad').head(10),
                 'Top Tipos': df['TIPO DE PROCEDIMIENTO'].value_counts().reset_index(name='Cantidad').head(10),
-                'Últimos Registros': df[['FECHA Y HORA', 'CUADRANTE', 'TIPO DE PROCEDIMIENTO', 'CATEGORIA']].tail(15),
+                'Últimos Registros': df[['FECHA Y HORA', 'CUADRANTE','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)']].tail(15),
             }
             
             # Crear PDF
