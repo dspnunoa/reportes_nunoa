@@ -5,7 +5,6 @@ import pytz
 import streamlit as st
 import time
 from datetime import datetime
-from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import landscape, letter
