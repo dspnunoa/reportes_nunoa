@@ -7,7 +7,7 @@ st.set_page_config(page_title="Tabla Interactiva", layout="wide")
 st.title("🗃️ Tablas Reportes Central Ñuñoa 2026")
 
 # Título y botones en una fila
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 with col1:
     if st.button("Inicio", key="nav_home", width='stretch'):
@@ -28,6 +28,10 @@ with col4:
 with col5:
     if st.button("Exportar Reportes", key="nav_report", width='stretch'):
         st.switch_page("pages/4_Exportar_Reportes.py")
+
+with col6:
+    if st.button("Gráficas Comparativas", key='nav_comp', width='stretch'):
+        st.switch_page("pages/5_Graficas_Comparativas.py")
 st.markdown("---")
 
 st.subheader("Filtros")

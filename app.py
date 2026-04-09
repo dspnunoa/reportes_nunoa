@@ -12,7 +12,7 @@ st.title("ℹ️ Reportes Procedimientos Central Ñuñoa 2026")
 
 
 # Título y botones en una fila
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 with col1:
     if st.button("Inicio", key="nav_home", width='stretch'):
@@ -33,6 +33,10 @@ with col4:
 with col5:
     if st.button("Exportar Reportes", key="nav_report", width='stretch'):
         st.switch_page("pages/4_Exportar_Reportes.py")
+
+with col6:
+    if st.button("Gráficas Comparativas", key='nav_comp', width='stretch'):
+        st.switch_page("pages/5_Graficas_Comparativas.py")
 st.markdown("---")
 
 st.header("Bienvenido")
@@ -42,6 +46,7 @@ Esta herramienta permite:
 - 📈 Analizar datos a través de gráficas
 - 🗃️ Explorar y filtrar datos en una tabla interactiva
 - 📝 Generar informes personalizados y estandarizados
+- ⚖️ Comparar información por período de tiempo
 
 Selecciona una opción en el menú para comenzar.
 """)

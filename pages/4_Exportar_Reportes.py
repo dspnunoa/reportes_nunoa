@@ -18,12 +18,12 @@ st.set_page_config(page_title="Generación de Informe", layout="wide")
 st.title("📝 Generación de Informe Reportes Central Ñuñoa 2026")
 
 # Título y botones en una fila
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 with col1:
-    if st.button("Inicio", key="nav_home",width='stretch'):
+    if st.button("Inicio", key="nav_home", width='stretch'):
         st.switch_page("app.py")
-        
+
 with col2:
     if st.button("Mapa Interactivo", key="nav_mapa", width='stretch'):
         st.switch_page("pages/1_Mapa_Interactivo.py")
@@ -35,9 +35,14 @@ with col3:
 with col4:
     if st.button("Tabla Interactiva", key="nav_tabla", width='stretch'):
         st.switch_page("pages/3_Tabla_Interactiva.py")
+
 with col5:
     if st.button("Exportar Reportes", key="nav_report", width='stretch'):
         st.switch_page("pages/4_Exportar_Reportes.py")
+
+with col6:
+    if st.button("Gráficas Comparativas", key='nav_comp', width='stretch'):
+        st.switch_page("pages/5_Graficas_Comparativas.py")
 st.markdown("---")
 
 st.subheader("Instrucciones de Uso")
@@ -75,6 +80,7 @@ op_hinicio = {0:'00:00',1:'01:00',2:'02:00',3:'03:00',4:'04:00',5:'05:00',6:'06:
 op_hfinal = {0:'00:00',1:'01:00',2:'02:00',3:'03:00',4:'04:00',5:'05:00',6:'06:00',7:'07:00',8:'08:00',9:'09:00',10:'10:00',11:'11:00',12:'12:00',13:'13:00',14:'14:00',15:'15:00',16:'16:00',17:'17:00',18:'18:00',19:'19:00',20:'20:00',21:'21:00',22:'22:00',23:'23:00', 24:'24:00'}
 op_mes = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
 op_ano = [2020,2021,2022,2023,2024,2025,2026]
+op_autor = ['Favio Jadrievic', 'Lionel Messi', 'Neil Armstrong', 'Henry James']
 ##
 opi_hinicio = list(op_hinicio.items())
 opi_hfinal = list(op_hfinal.items())
@@ -103,12 +109,14 @@ with col8:
     calle = st.text_input("Calle",'',placeholder="Elige")
 with col9:
     palabra = st.text_input("Palabra Clave",'',placeholder="Elige")
+with col10:
+    autor = st.selectbox("Autor", op_autor, index=None, placeholder='Elige')
 if calle:
     df = df[df['CALLE'].str.contains(calle, case=False, na=False) | df['CALLE QUE INTERSECTA'].str.contains(calle, case=False, na=False)]
 if palabra:
     df = df[df['INFORME'].str.contains(palabra, case=False, na=False) | df['DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)'].str.contains(palabra, case=False, na=False)]
 ##### GRAN FUNCION #####
-def crear_pdf_con_graficos_y_tablas(titulo, metricas, graficos_dict, tablas_dict):
+def crear_pdf_con_graficos_y_tablas(titulo, autor, metricas, graficos_dict, tablas_dict):
     """
     Crea un PDF con gráficos y tablas
     
@@ -137,9 +145,10 @@ def crear_pdf_con_graficos_y_tablas(titulo, metricas, graficos_dict, tablas_dict
     # Título
     elements.append(Paragraph(titulo, title_style))
     elements.append(Spacer(1, 0.2*inch))
+    elements.append(Paragraph(f"Autor: {autor}", styles['Heading2']))
+    elements.append(Spacer(1, 0.1*inch))
     elements.append(Paragraph(f"Fecha: {str(now_local.strftime('%Y-%m-%d'))}", styles['Heading2']))
     elements.append(Spacer(1, 0.1*inch))
-    
     # SECCIÓN: MÉTRICAS
     if metricas:
         elements.append(Paragraph("Métricas Principales", styles['Heading2']))
@@ -295,7 +304,7 @@ fig_linea = px.line(
 st.markdown("---")
 st.subheader("📥 Descargar Reporte")
 
-if st.button("📄 Generar PDF"):
+if st.button("Generar PDF"):
     with st.spinner("Generando PDF..."):
         try:
             # Preparar métricas
@@ -328,20 +337,17 @@ if st.button("📄 Generar PDF"):
             }
             
             # Crear PDF
-            if titulo:
-                pdf = crear_pdf_con_graficos_y_tablas(
-                    f"{titulo}: {finicio} a {ffinal}",
-                    metricas,
-                    graficos,
-                    tablas
-                )
-            else:
-                pdf = crear_pdf_con_graficos_y_tablas(
-                    f"Reporte de Análisis de Procedimientos: {finicio} a {ffinal}",
-                    metricas,
-                    graficos,
-                    tablas
-                )
+            if not titulo:
+                titulo = "Reporte de Análisis de Procedimientos"
+            if not autor:
+                autor = 'Municipalidad de Ñuñoa'
+            pdf = crear_pdf_con_graficos_y_tablas(
+                f"{titulo}: {finicio} a {ffinal}",
+                autor,
+                metricas,
+                graficos,
+                tablas
+            )
             
             # Descargar
             st.download_button(
