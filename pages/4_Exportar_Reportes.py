@@ -146,7 +146,6 @@ def crear_pdf_con_graficos_y_tablas(titulo, autor, metricas, graficos_dict, tabl
     elements.append(Paragraph(titulo, title_style))
     elements.append(Spacer(1, 0.2*inch))
     elements.append(Paragraph(f"Autor: {autor}", styles['Heading2']))
-    elements.append(Spacer(1, 0.1*inch))
     elements.append(Paragraph(f"Fecha: {str(now_local.strftime('%Y-%m-%d'))}", styles['Heading2']))
     elements.append(Spacer(1, 0.1*inch))
     # SECCIÓN: MÉTRICAS
@@ -333,6 +332,7 @@ if st.button("Generar PDF"):
             tablas = {
                 'Top Cuadrantes': df['CUADRANTE'].value_counts().reset_index(name='Cantidad').head(10),
                 'Top Tipos': df['TIPO DE PROCEDIMIENTO'].value_counts().reset_index(name='Cantidad').head(10),
+                'Top Calles': df['CALLE'].value_counts().reset_index(name='Cantidad').head(10),
                 'Últimos Registros': df[['FECHA Y HORA', 'CUADRANTE','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)']].tail(15),
             }
             
