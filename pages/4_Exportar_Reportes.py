@@ -181,7 +181,7 @@ def crear_pdf_con_graficos_y_tablas(titulo, autor, metricas, graficos_dict, tabl
         for nombre_grafico, fig in graficos_dict.items():
             try:
                 # Convertir gráfico a imagen PNG
-                img_bytes = fig.to_image(format="png", width=700, height=400)
+                img_bytes = fig.to_image(format="png", width=1225, height=700)
                 img_buffer = io.BytesIO(img_bytes)
                 
                 # Agregar título del gráfico
@@ -189,7 +189,7 @@ def crear_pdf_con_graficos_y_tablas(titulo, autor, metricas, graficos_dict, tabl
                 elements.append(Spacer(1, 0.1*inch))
                 
                 # Agregar imagen
-                img = Image(img_buffer, width=6*inch, height=3.5*inch)
+                img = Image(img_buffer, width=8.6*inch, height=5*inch)
                 elements.append(img)
                 elements.append(Spacer(1, 0.3*inch))
                 elements.append(PageBreak())
