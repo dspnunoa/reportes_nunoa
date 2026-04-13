@@ -46,7 +46,7 @@ with col6:
 st.markdown("---")
 
 st.subheader("Instrucciones de Uso")
-st.markdown(f" 1. Elegir rango de fechas. Por defecto, se elegirá el total del archivo.\n 2. Seleccionar aspectos a analizar.\n 3. COMPLETAR OTROS.")
+st.markdown(f" 1. Elegir rango de fechas. Por defecto, se elegirá el total del archivo.\n 2. Seleccionar variables del reporte (Canal de Ingreso, Cuadrante, Categoría, Tipo de Procedimiento, Palabra Clave, Calle).\n 3. Seleccionar variables de diseño opcionales (Título, Autor).")
 ##
 fec1, fec2 = st.columns(2)
 dfr = pd.read_csv('info.csv',sep=';',engine='python',encoding='utf-8')
@@ -85,8 +85,8 @@ op_autor = ['Favio Jadrievic', 'Lionel Messi', 'Neil Armstrong', 'Henry James']
 opi_hinicio = list(op_hinicio.items())
 opi_hfinal = list(op_hfinal.items())
 opi_mes = list(op_mes.items())
-col1, col2, col3, col4, col5 = st.columns(5)
-col6, col7, col8, col9, col10 = st.columns(5)
+col1, col2, col3, col4  = st.columns(4)
+col5, col6, col7, col8 = st.columns(4)
 with col1:
     ingreso = st.selectbox("Vía de Ingreso", op_ingreso, index=None,placeholder='Elige')
 with col2:
@@ -100,17 +100,22 @@ with col4:
     else:
         tipo = st.multiselect("Tipo", op_tipo,placeholder='Elige')
 with col5:
-    titulo = st.text_input("Título",'',placeholder="Elige")
-with col6:
-    metricas = st.checkbox("Incluir tabla de métricas")
-with col7:
-    registro = st.checkbox("Incluir últimos registros")
-with col8:
-    calle = st.text_input("Calle",'',placeholder="Elige")
-with col9:
     palabra = st.text_input("Palabra Clave",'',placeholder="Elige")
-with col10:
+with col6:
+    calle = st.text_input("Calle",'',placeholder="Elige")
+with col7:
+    titulo = st.text_input("Título",'',placeholder="Elige")
+with col8:
     autor = st.selectbox("Autor", op_autor, index=None, placeholder='Elige')
+
+if ingreso:
+    df= df[df['CANAL DE INGRESO'] == ingreso]
+if cuadrante:
+     df = df[df['CUADRANTE'] == cuadrante]
+if categoria:
+    df = df[df['CATEGORIA'] == categoria]
+if tipo:
+    df = df[df['TIPO DE PROCEDIMIENTO'].isin(tipo)]
 if calle:
     df = df[df['CALLE'].str.contains(calle, case=False, na=False) | df['CALLE QUE INTERSECTA'].str.contains(calle, case=False, na=False)]
 if palabra:
