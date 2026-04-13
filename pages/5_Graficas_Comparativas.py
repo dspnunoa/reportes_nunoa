@@ -113,43 +113,48 @@ if st.button("Ver Gráfica Comparativa"):
         ## Gráfico de barra doble ##
         st.plotly_chart(fig,width='stretch')
 
-        ## Gráfico de multi-linea que muestra el avance temporal ##
-        for ano in anos:
-            #
-            rinicio = str(ano)+'-'+str(fcinicio)
-            rfinal = str(ano)+'-'+str(fcfinal)
-            rinicio = datetime.strptime(rinicio, "%Y-%m-%d")
-            rfinal = datetime.strptime(rfinal, "%Y-%m-%d")
-            rinicio = rinicio.date()
-            rfinal = rfinal.date()
-            df = dfr.copy()
-            df = df[(df['FECHA Y HORA'].dt.year == ano) & (df['FECHA Y HORA'].dt.date >= rinicio) & (df['FECHA Y HORA'].dt.date <= rfinal)]
-            ##
-            df["FECHA"] = df["FECHA Y HORA"].dt.date
-            ###########
-            fechas = pd.date_range(
-                df["FECHA"].min(),
-                df["FECHA"].max(),
-                freq="D"
-            )
-            index_completo = pd.MultiIndex.from_product(
-                [fechas, tipos],
-                names=["FECHA", "TIPO DE PROCEDIMIENTO"]
-            )
+        ## Tabla que muestra lo mismo que el gráfico de barra ##
+        st.dataframe(df2, width='stretch', hide_index=True)
+
+        ## RECORRO TODOS LOS PROCEDIMIENTOS ##
+        df = dfr.copy()
+        filt = (df['FECHA Y HORA'].dt.strftime('%m-%d') >= fcinicio) & (df['FECHA Y HORA'].dt.strftime('%m-%d') <= fcfinal)
+        dff = df[filt]
+        df = dff
+        df["AÑO"] = df["FECHA Y HORA"].dt.year
+        df["DIA DEL ANO"] = df["FECHA Y HORA"].dt.dayofyear
+        df["SEMANA"] = df["FECHA Y HORA"].dt.isocalendar().week
+        for tipo in tipos:
+            st.subheader(f"{tipo}")
+            df_tipo = df[df["TIPO DE PROCEDIMIENTO"] == tipo]
+            ## ESTE FUNCIONA PARA LAS SEMANAS ##
             df_grouped = (
-                df.groupby(["FECHA", "TIPO DE PROCEDIMIENTO"])
-                .size()
-                .reindex(index_completo, fill_value=0)
-                .reset_index(name="CANTIDAD")
+                df_tipo.groupby(["AÑO", "SEMANA"])
+                    .size()
+                    .unstack(fill_value=0)
+                    .stack()
+                    .reset_index()
+                    .rename(columns={0: "CANTIDAD"})
             )
             fig = px.line(
                 df_grouped,
-                x="FECHA",
+                x="SEMANA",
                 y="CANTIDAD",
-                title=f"Evolución temporal {str(ano)}",
-                color="TIPO DE PROCEDIMIENTO"
+                color="AÑO"
             )
-            ###########
-            st.plotly_chart(fig,width='stretch', key=f'{ano}')
-        ## Tabla que muestra lo mismo que el gráfico de barra ##
-        st.dataframe(df2, width='stretch', hide_index=True)
+            ## ESTE FUNCIONA PARA LOS DÍAS ## 
+            # df_grouped = (
+            #     df_tipo.groupby(["AÑO", "DIA DEL ANO"])
+            #         .size()
+            #         .unstack(fill_value=0)
+            #         .stack()
+            #         .reset_index()
+            #         .rename(columns={0: "CANTIDAD"})
+            # )
+            # fig = px.line(
+            #     df_grouped,
+            #     x="DIA DEL ANO",
+            #     y="CANTIDAD",
+            #     color="AÑO"
+            # )
+            st.plotly_chart(fig, width='stretch')

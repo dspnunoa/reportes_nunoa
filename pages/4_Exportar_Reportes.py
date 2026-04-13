@@ -45,8 +45,9 @@ with col6:
         st.switch_page("pages/5_Graficas_Comparativas.py")
 st.markdown("---")
 
-st.subheader("Instrucciones de Uso")
-st.markdown(f" 1. Elegir rango de fechas. Por defecto, se elegirá el total del archivo.\n 2. Seleccionar variables del reporte (Canal de Ingreso, Cuadrante, Categoría, Tipo de Procedimiento, Palabra Clave, Calle).\n 3. Seleccionar variables de diseño opcionales (Título, Autor).")
+st.subheader("Instrucciones de Uso:")
+st.markdown(f" 1. Elegir rango de fechas. En caso contrario, se elegirá el total del archivo.\n 2. Seleccionar* variables del reporte (Canal de Ingreso, Cuadrante, Categoría, Tipo de Procedimiento, Palabra Clave, Calle).\n 3. Seleccionar* variables de diseño (Título, Autor).")
+st.markdown("*Todas las variables son opcionales. Se incluye un título y autor pre-definido por defecto.")
 ##
 fec1, fec2 = st.columns(2)
 dfr = pd.read_csv('info.csv',sep=';',engine='python',encoding='utf-8')
