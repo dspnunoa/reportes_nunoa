@@ -307,6 +307,7 @@ fig_linea = px.line(
     y='cantidad',
     title='Reportes Diarios',
     labels={'fecha': 'Fecha', 'cantidad': 'Cantidad'},
+    color_discrete_sequence=['#1f77b4'],
     markers=True
 )
 
