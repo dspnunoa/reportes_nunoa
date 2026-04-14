@@ -12,7 +12,10 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
-
+##
+import plotly.io as pio
+pio.defaults.default_format = "png"
+##
 st.set_page_config(page_title="Generación de Informe", layout="wide")
 
 st.title("📝 Generación de Informe Reportes Central Ñuñoa 2026")
