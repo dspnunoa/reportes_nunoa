@@ -221,15 +221,24 @@ if st.session_state.mostrar_mapa:
     c132 = [[-33.455501,-70.629838], [-33.455201,-70.62847], [-33.455161,-70.627949], [-33.455273,-70.627445], [-33.461091,-70.625814], [-33.461673,-70.625106], [-33.460912,-70.624269], [-33.4611,-70.62193], [-33.460849,-70.621415], [-33.461234,-70.620975], [-33.461655,-70.615042], [-33.462639,-70.615096], [-33.465575,-70.614914], [-33.46766,-70.61398], [-33.474453,-70.613605], [-33.474928,-70.623014], [-33.470077,-70.624323], [-33.468931,-70.625954], [-33.455501,-70.629838]]
     c133 = [[-33.447941,-70.622252], [-33.447243,-70.618776], [-33.448362,-70.618411], [-33.447548,-70.613744], [-33.453277,-70.612457], [-33.453196,-70.613594], [-33.46084,-70.614731], [-33.460778,-70.615289], [-33.461324,-70.61501], [-33.461691,-70.61501], [-33.46127,-70.620965], [-33.460876,-70.621383], [-33.460626,-70.621051], [-33.453483,-70.620632], [-33.447941,-70.622252]]
     lcuad = [c118,c119,c120,c121,c129,c130,c131,c132,c133]
-    for element in lcuad:
+    ldcuad = {"118":c118,"119":c119,"120":c120,"121":c121,"129":c129,"130":c130,"131":c131,"132":c132,"133":c133}
+    for element in ldcuad:
         folium.Polygon(
-            locations=element,
+            locations=ldcuad[element],
             color="black",
             fill=False,
             opacity = 0.5,
             fill_color="black"
             ).add_to(m)
-    
+    for element in ldcuad:
+        centro_lat = sum([coord[0] for coord in ldcuad[element]]) / len(ldcuad[element])
+        centro_lng = sum([coord[1] for coord in ldcuad[element]]) / len(ldcuad[element])
+        folium.Marker(
+            location=[centro_lat, centro_lng],
+            icon=folium.features.DivIcon(html=f'''
+                <div style="font-size: 20px;color: blue; font-weight: bold;">{element}</div>
+            ''')
+            ).add_to(m)
     ## Agregar herramienta de dibujo ##
     from folium.plugins import Draw
     Draw(export=False).add_to(m)
