@@ -10,6 +10,9 @@ st.logo("./logo.png",size='large',icon_image="./logo.png")
 ##
 hide_streamlit_style = """
 <style>
+[data-testid="stToolbar"] {
+    visibility: hidden;
+}
 footer {visibility: hidden;}
 </style>
 """
