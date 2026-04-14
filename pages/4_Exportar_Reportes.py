@@ -64,6 +64,7 @@ with fec2:
 
 if finicio and ffinal:
     df = dfr[(dfr['FECHA Y HORA'].dt.date >= finicio) & (dfr['FECHA Y HORA'].dt.date <= ffinal)].copy()
+    
 else:
     df = dfr.copy()
     finicio = str(df['FECHA Y HORA'].min()).split(' ')[0]
@@ -85,12 +86,14 @@ op_hfinal = {0:'00:00',1:'01:00',2:'02:00',3:'03:00',4:'04:00',5:'05:00',6:'06:0
 op_mes = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
 op_ano = [2020,2021,2022,2023,2024,2025,2026]
 op_autor = ['Favio Jadrievic', 'Lionel Messi', 'Neil Armstrong', 'Henry James']
+op_formato = ['Mostrar Descripción', 'Mostrar Informe', 'Mostrar Descripción e Informe']
 ##
 opi_hinicio = list(op_hinicio.items())
 opi_hfinal = list(op_hfinal.items())
 opi_mes = list(op_mes.items())
 col1, col2, col3, col4  = st.columns(4)
 col5, col6, col7, col8 = st.columns(4)
+col9, col10, col11, col12 = st.columns(4)
 with col1:
     ingreso = st.selectbox("Vía de Ingreso", op_ingreso, index=None,placeholder='Elige')
 with col2:
@@ -111,6 +114,8 @@ with col7:
     titulo = st.text_input("Título",'',placeholder="Elige")
 with col8:
     autor = st.selectbox("Autor", op_autor, index=None, placeholder='Elige')
+with col9:
+    formato = st.selectbox("Fotmato Registros", op_formato, index=None, placeholder='Elige')
 
 if ingreso:
     df= df[df['CANAL DE INGRESO'] == ingreso]
@@ -124,6 +129,7 @@ if calle:
     df = df[df['CALLE'].str.contains(calle, case=False, na=False) | df['CALLE QUE INTERSECTA'].str.contains(calle, case=False, na=False)]
 if palabra:
     df = df[df['INFORME'].str.contains(palabra, case=False, na=False) | df['DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)'].str.contains(palabra, case=False, na=False)]
+## CHECK LEN ##
 ##### GRAN FUNCION #####
 def crear_pdf_con_graficos_y_tablas(titulo, autor, metricas, graficos_dict, tablas_dict):
     """
@@ -153,7 +159,11 @@ def crear_pdf_con_graficos_y_tablas(titulo, autor, metricas, graficos_dict, tabl
     
     # Título
     elements.append(Paragraph(titulo, title_style))
+    ## IMAGEN ##
+    img = Image("./logo.png", width=1.5*inch, height=1.5*inch)  # Ajusta ancho y alto
+    elements.append(img)
     elements.append(Spacer(1, 0.2*inch))
+    ############
     elements.append(Paragraph(f"Autor: {autor}", styles['Heading2']))
     elements.append(Paragraph(f"Fecha: {str(now_local.strftime('%Y-%m-%d'))}", styles['Heading2']))
     elements.append(Spacer(1, 0.1*inch))
@@ -167,7 +177,7 @@ def crear_pdf_con_graficos_y_tablas(titulo, autor, metricas, graficos_dict, tabl
         for nombre, valor in metricas.items():
             data.append([nombre, str(valor)])
         
-        table = Table(data, colWidths=[3*inch, 2*inch])
+        table = Table(data, colWidths=[3*inch, 3*inch])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f77b4')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -219,15 +229,26 @@ def crear_pdf_con_graficos_y_tablas(titulo, autor, metricas, graficos_dict, tabl
             elements.append(Paragraph(f"{nombre_tabla} ({len(df)} registros)", styles['Heading3']))
             elements.append(Spacer(1, 0.1*inch))
             
-            # Convertir DataFrame a lista (máximo 15 filas por tabla)
-            df_truncado = df.head(15)
-            data = [df_truncado.columns.tolist()] + df_truncado.values.tolist()
             # Crear tabla
             if nombre_tabla == 'Últimos Registros':
-                for element in data[1:]:
-                    element[2] = Paragraph(element[2])
-                table = Table(data,colWidths=[1.5*inch, 1*inch, 5*inch])
+                # Convertir DataFrame a lista (máximo n filas por tabla)
+                df_truncado = df.head(50)
+                data = [df_truncado.columns.tolist()] + df_truncado.values.tolist()
+                ## CASO ESPECIAL ##
+                if formato and formato == 'Mostrar Descripción e Informe':
+                    for element in data[1:]:
+                        element[1] = Paragraph(str(element[1]))
+                        element[2] = Paragraph(str(element[2]))
+                    table = Table(data,colWidths=[1.2*inch, 4*inch, 5*inch],splitByRow=True)
+                    ##df_formato = df[['FECHA Y HORA', 'TIPO DE PROCEDIMIENTO','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)','INFORME']].tail(50)                
+                else:
+                    for element in data[1:]:
+                        element[1] = Paragraph(str(element[1]))
+                        element[2] = Paragraph(str(element[2]))
+                    table = Table(data,colWidths=[1.2*inch, 1.8*inch, 5*inch])
             else:
+                df_truncado = df.head(15)
+                data = [df_truncado.columns.tolist()] + df_truncado.values.tolist()
                 table = Table(data)
             table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f77b4')),
@@ -242,10 +263,6 @@ def crear_pdf_con_graficos_y_tablas(titulo, autor, metricas, graficos_dict, tabl
             ]))
             elements.append(table)
             elements.append(Spacer(1, 0.2*inch))
-            
-            if len(df) > 15:
-                elements.append(Paragraph(f"Mostrando 15 de {len(df)} registros", styles['Italic']))
-            
             elements.append(PageBreak())
     
     # Construir PDF
@@ -294,26 +311,28 @@ def barra(filtro):
     )
     return fig_barras
 
-df['fecha'] = df['FECHA Y HORA'].dt.date
+
 ##
-fechas = pd.date_range(
-    df['fecha'].min(),
-    df['fecha'].max(),
-    freq="D"
-)
-#
-df_linea = df.groupby('fecha').size().asfreq("D", fill_value=0).reset_index(name='cantidad')
-df_linea['fecha'] = pd.to_datetime(df_linea['fecha'])
-df_linea = df_linea.sort_values('fecha')
-fig_linea = px.line(
-    df_linea,
-    x='fecha',
-    y='cantidad',
-    title='Reportes Diarios',
-    labels={'fecha': 'Fecha', 'cantidad': 'Cantidad'},
-    color_discrete_sequence=['#1f77b4'],
-    markers=True
-)
+if len(df) > 0:
+    df['fecha'] = df['FECHA Y HORA'].dt.date
+    fechas = pd.date_range(
+        df['fecha'].min(),
+        df['fecha'].max(),
+        freq="D"
+    )
+    #
+    df_linea = df.groupby('fecha').size().asfreq("D", fill_value=0).reset_index(name='cantidad')
+    df_linea['fecha'] = pd.to_datetime(df_linea['fecha'])
+    df_linea = df_linea.sort_values('fecha')
+    fig_linea = px.line(
+        df_linea,
+        x='fecha',
+        y='cantidad',
+        title='Reportes Diarios',
+        labels={'fecha': 'Fecha', 'cantidad': 'Cantidad'},
+        color_discrete_sequence=['#1f77b4'],
+        markers=True
+    )
 
 # ==================== EXPORTAR A PDF ====================
 
@@ -324,7 +343,10 @@ if st.button("Generar PDF"):
     with st.spinner("Generando PDF..."):
         try:
             # Preparar métricas
-            dias_cubiertos = ((df['FECHA Y HORA'].max() - df['FECHA Y HORA'].min()).days)+1
+            if len(df) > 0:
+                dias_cubiertos = ((df['FECHA Y HORA'].max() - df['FECHA Y HORA'].min()).days)+1
+            elif len(df) == 0:
+                st.error("❌ La búsqueda realizada no tiene resultados. Intentelo nuevamente")
             metricas = {
                 'Total de procedimientos': len(df),
                 'Cuadrante con más reportes': df['CUADRANTE'].value_counts().index[0],
@@ -346,11 +368,20 @@ if st.button("Generar PDF"):
             }
             
             # Preparar tablas
+            if formato:
+                if formato == 'Mostrar Descripción':
+                    df_formato = df[['FECHA Y HORA', 'TIPO DE PROCEDIMIENTO','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)']].tail(50)
+                elif formato == 'Mostrar Informe':
+                    df_formato = df[['FECHA Y HORA', 'TIPO DE PROCEDIMIENTO','INFORME']].tail(50)
+                elif formato == 'Mostrar Descripción e Informe':
+                    df_formato = df[['FECHA Y HORA','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)','INFORME']].tail(50)
+            if not formato:
+                df_formato = df[['FECHA Y HORA', 'TIPO DE PROCEDIMIENTO','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)']].tail(50)
             tablas = {
                 'Top Cuadrantes': df['CUADRANTE'].value_counts().reset_index(name='Cantidad').head(10),
                 'Top Tipos': df['TIPO DE PROCEDIMIENTO'].value_counts().reset_index(name='Cantidad').head(10),
                 'Top Calles': df['CALLE'].value_counts().reset_index(name='Cantidad').head(10),
-                'Últimos Registros': df[['FECHA Y HORA', 'CUADRANTE','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)']].tail(15),
+                'Últimos Registros': df_formato,
             }
             
             # Crear PDF
