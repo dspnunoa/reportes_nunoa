@@ -16,6 +16,29 @@ footer {visibility: hidden;}
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 ##
 
+##### VALIDACIÓN USUARIO #####
+def check_password():
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+
+    if st.session_state.authenticated:
+        return True
+
+    password = st.text_input("Para continuar ingrese contraseña:", type="password")
+
+    if st.button("Iniciar sesión"):
+        if password == st.secrets["APP_PASSWORD"]:
+            st.session_state.authenticated = True
+        else:
+            st.error("Contraseña incorrecta")
+
+    return False
+
+
+if not check_password():
+    st.stop()
+##############################
+
 st.title("ℹ️ Reportes Procedimientos Central Ñuñoa 2026")
 
 
