@@ -7,6 +7,7 @@ from folium.plugins import HeatMap
 from datetime import datetime
 
 st.set_page_config(page_title="Mapa Interactivo", layout="wide")
+st.logo("./logo.png",size='large',icon_image="./logo.png")
 
 st.title("🗺️ Mapa Interactivo Reportes Central Ñuñoa 2026")
 # Título y botones en una fila

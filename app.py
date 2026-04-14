@@ -6,13 +6,12 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
     layout="wide"
 )
-
+st.logo("./logo.png",size='large',icon_image="./logo.png")
 ##
 hide_streamlit_style = """
 <style>
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
-header {visibility: hidden;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)

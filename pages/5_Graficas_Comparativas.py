@@ -4,6 +4,7 @@ import plotly.express as px
 import streamlit as st
 
 st.set_page_config(page_title="Gráficas Comparativas", layout="wide")
+st.logo("./logo.png",size='large',icon_image="./logo.png")
 
 st.title("⚖️ Gráficas Comparativas Reportes Central Ñuñoa 2026")
 # Título y botones en una fila

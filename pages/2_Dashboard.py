@@ -4,6 +4,7 @@ import plotly.express as px
 import streamlit as st
 import numpy as np
 st.set_page_config(page_title="Dashboard", layout="wide")
+st.logo("./logo.png",size='large',icon_image="./logo.png")
 
 st.title("📈 Dashboard Reportes Central Ñuñoa 2026")
 # Título y botones en una fila

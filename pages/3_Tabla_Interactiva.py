@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="Tabla Interactiva", layout="wide")
-
+st.logo("./logo.png",size='large',icon_image="./logo.png")
 st.title("🗃️ Tablas Reportes Central Ñuñoa 2026")
 
 # Título y botones en una fila
