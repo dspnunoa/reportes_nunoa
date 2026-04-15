@@ -7,16 +7,16 @@ st.set_page_config(
     layout="wide"
 )
 st.logo("./logo.png",size='large',icon_image="./logo.png")
-##
-hide_streamlit_style = """
-<style>
-[data-testid="stToolbar"] {
-    visibility: hidden;
-}
-footer {visibility: hidden;}
-</style>
-"""
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+## ESTO ES PARA ESCONDER PARTE DEL HEADER, POR AHORA QUEDA COMENTADO ##
+# hide_streamlit_style = """
+# <style>
+# [data-testid="stToolbar"] {
+#     visibility: hidden;
+# }
+# footer {visibility: hidden;}
+# </style>
+# """
+# st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 ##
 st.title("ℹ️ Reportes Procedimientos Central Ñuñoa 2026")
 ##### VALIDACIÓN USUARIO #####
