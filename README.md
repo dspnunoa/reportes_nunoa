@@ -1,6 +1,6 @@
 # Aplicación visual procedimientos Ñuñoa
 ## Descripción
-Herramienta visual para el análisis de procedimientos y reportes central Ñuñoa. Información integrada desde el 01/01/2025 al 31/03/2026.
+Herramienta visual para el análisis de procedimientos y reportes central Ñuñoa. Información integrada desde el 01/01/2025 al 21/04/2026.
 ## Acceso
 Mediante el link: https://reportesnunoa.streamlit.app/
 ## Páginas
