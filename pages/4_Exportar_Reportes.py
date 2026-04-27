@@ -54,6 +54,13 @@ with col6:
     if st.button("Gráficas Comparativas", key='nav_comp', width='stretch'):
         st.switch_page("pages/5_Graficas_Comparativas.py")
 st.markdown("---")
+## Información sobre la data comprendida en la aplicación ##
+dfr = pd.read_csv('info.csv', sep=';', engine='python')
+dfr['FECHA Y HORA'] = pd.to_datetime(dfr['FECHA Y HORA'])
+first_hist = dfr.iloc[0]['FECHA Y HORA']
+last_hist = dfr.iloc[-1]['FECHA Y HORA']
+st.markdown(f"Información integrada desde **{first_hist}** a **{last_hist}**")
+
 
 st.subheader("Instrucciones de Uso:")
 st.markdown(f" 1. Elegir rango de fechas. En caso contrario, se elegirá el total del archivo.\n 2. Seleccionar* variables del reporte (Canal de Ingreso, Cuadrante, Categoría, Tipo de Procedimiento, Palabra Clave, Calle).\n 3. Seleccionar* variables de diseño (Título, Autor, Formato Registros).")

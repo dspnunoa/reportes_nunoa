@@ -49,6 +49,7 @@ dias_hist = ((dfr['FECHA Y HORA'].max() - dfr['FECHA Y HORA'].min()).days)+1
 prom_hist = round(len(dfr) / max(dias_hist, 1), 1)
 first_hist = dfr.iloc[0]['FECHA Y HORA']
 last_hist = dfr.iloc[-1]['FECHA Y HORA']
+st.markdown(f"Información integrada desde **{first_hist}** a **{last_hist}**")
 
 ## Función auxiliar para evitar errores de formato ##
 def is_time(time_str):
@@ -70,7 +71,6 @@ if finicio and ffinal:
     df = dfr[(dfr['FECHA Y HORA'].dt.date >= finicio) & (dfr['FECHA Y HORA'].dt.date <= ffinal)].copy()
 else:
     df = dfr.copy()
-st.markdown(f"Información integrada desde **{first_hist}** a **{last_hist}**")
 
 st.subheader(f"ℹ️ Métricas Principales")
 dias_cubiertos = ((df['FECHA Y HORA'].max() - df['FECHA Y HORA'].min()).days)+1

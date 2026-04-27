@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 
 ## Configuración inicial aplicación ##
@@ -46,6 +47,13 @@ with col6:
 
 ## Descripción general de la aplicación ##
 st.markdown("---")
+## Información sobre la data comprendida en la aplicación ##
+dfr = pd.read_csv('info.csv', sep=';', engine='python')
+dfr['FECHA Y HORA'] = pd.to_datetime(dfr['FECHA Y HORA'])
+first_hist = dfr.iloc[0]['FECHA Y HORA']
+last_hist = dfr.iloc[-1]['FECHA Y HORA']
+st.markdown(f"Información integrada desde **{first_hist}** a **{last_hist}**")
+
 st.header("Bienvenido a la plataforma de análisis de reportes ingresados por Central de Dirección de Seguridad Pública. En esta aplicación podrás:")
 st.write("""
 - 🗺️ Visualizar reportes georeferenciados en un mapa de calor
@@ -60,9 +68,9 @@ Selecciona una opción en el menú para comenzar.
 st.markdown("---")
 st.header("🗺️ Mapa Interactivo")
 st.write("""
-        Visualización georeferenciada de los reportes. Seleccione al menos uno de los doce filtros disponibles (Vía de Ingreso, Cuadrante, Categoría, Tipo, Hora Inicio, Hora Final, Mes, Año, Desde, Hasta, Calle, Palabra Clave) y haga click en "Visualizar Mapa" para que este se despliegue. Se mostrará el número de resultados encontrados junto a los puntos ubicados en el mapa, además de un mapa de calor asociado. El mapa muestra la delimitación de cada cuadrante junto a una leyenda incluyendo el número de este.
+        Visualización georeferenciada de los reportes. Seleccione al menos uno de los doce filtros disponibles (Vía de Ingreso, Cuadrante, Categoría, Tipo, Hora Inicio, Hora Final, Mes, Año, Desde, Hasta, Calle, Palabra Clave) y haga click en "Visualizar Mapa" para que este se despliegue (El filtro Calle buscará coincidencias en los campos "CALLE" y "CALLE QUE INTERSECTA", mientras que el filtro Palabra Clave en los campos "DESCRIPCION DEL PROCEDIMIENTO" e "INFORME"). Se mostrará el número de resultados encontrados junto a los puntos ubicados en el mapa, además de un mapa de calor asociado. El mapa muestra la delimitación de cada cuadrante junto a una leyenda incluyendo el número de este.
          
-        Es posible además elegir cualquiera de las figuras en la parte derecha del mapa (círculo, cuadrado o polígono), para poder seleccionar una parte específica de interés. De ser así el caso, se desplegarán dos tablas: la primera mostrando un desglose de todos los puntos dentro de la figura, y la segunda un resumen por el tipo de procedimiento. Cada una de estas tablas se puede exportar de la siguiente manera: pasando el mouse por encima de la tabla, se despliega un menú en la parte superior izquierda, ahí hay que hacer click en el botón 'Download as CSV'.
+        Es posible además elegir cualquiera de las figuras en la parte izquierda del mapa (círculo, cuadrado o polígono), para poder seleccionar una parte específica de interés. De ser así el caso, se desplegarán dos tablas: la primera mostrando un desglose de todos los puntos dentro de la figura, y la segunda un resumen por el tipo de procedimiento. Cada una de estas tablas se puede exportar de la siguiente manera: pasando el mouse por encima de la tabla, se despliega un menú en la parte superior derecha, ahí hay que hacer click en el botón 'Download as CSV'.
 
         Para una mejor disposición del archivo descargado hacer lo siguiente: con el archivo .csv abierto, hacer click en la columna A y asegurar que se hayan seleccionado todas las filas de esa columna. Luego ir a la parte 'Datos' del menú superior y hacer click en 'Texto en columnas'. En el paso 1 seleccionar 'Delimitados', en el paso 2 seleccionar 'Coma' y en el paso 3 hacer click en 'Finalizar'.
 """)

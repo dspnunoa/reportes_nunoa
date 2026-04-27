@@ -40,6 +40,13 @@ with col6:
     if st.button("Gráficas Comparativas", key='nav_comp', width='stretch', type="primary"):
         st.switch_page("pages/5_Graficas_Comparativas.py")
 st.markdown("---")
+## Información sobre la data comprendida en la aplicación ##
+dfr = pd.read_csv('info.csv', sep=';', engine='python')
+dfr['FECHA Y HORA'] = pd.to_datetime(dfr['FECHA Y HORA'])
+first_hist = dfr.iloc[0]['FECHA Y HORA']
+last_hist = dfr.iloc[-1]['FECHA Y HORA']
+st.markdown(f"Información integrada desde **{first_hist}** a **{last_hist}**")
+
 
 ## Cargo el excel ##
 dfr = pd.read_csv('info.csv', sep=';', engine='python')
