@@ -120,6 +120,8 @@ col11, col12, col13, col14, col15 = st.columns(5)
 with col11:
     calle = st.text_input("Calle",'',placeholder="Elige")
 with col12:
+    numeracion = st.text_input("Numeración",'',placeholder="Elige")
+with col13:
     palabra = st.text_input("Palabra Clave",'',placeholder="Elige")
 
 ## Creo el botón que activa todo el flujo del mapa de calor ##
@@ -164,6 +166,8 @@ if st.button("Visualizar Mapa"):
                 df_filtrado = df_filtrado[df_filtrado['FECHA Y HORA'].dt.date <= ffinal]
             if calle:
                 df_filtrado = df_filtrado[df_filtrado['CALLE'].str.contains(calle, case=False, na=False) | df_filtrado['CALLE QUE INTERSECTA'].str.contains(calle, case=False, na=False)]
+            if numeracion:
+                df_filtrado = df_filtrado[df_filtrado['NUMERACIÓN'].str.contains(numeracion, case=False, na=False)]
             if palabra:
                 df_filtrado = df_filtrado[df_filtrado['INFORME'].str.contains(palabra, case=False, na=False) | df_filtrado['DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)'].str.contains(palabra, case=False, na=False)]
 
