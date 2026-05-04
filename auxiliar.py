@@ -74,11 +74,11 @@ def fcanalingreso(valor):
     return valor
 
 ## Para verificar que todo el archivo tenga la misma estructua, comparo los campos del nuevo archivo con los del actual ##
-# campos = list(df.columns)
-# campos_final = ['NRO','ID ASIGNADO /TICKET','FECHA Y HORA','OPERADOR','CANAL DE INGRESO','TIPO DE RECURRENTE','AREA O SECCIÓN DEL RECURRENTE','NOMBRE DE RECURRENTE','TELEFONO RECURRENTE','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)','CATEGORIA','TIPO DE PROCEDIMIENTO','CALLE','NUMERACIÓN','CALLE QUE INTERSECTA','LUGAR PÚBLICO /  PRIVADO','ACLARATORIA DE LA UBICACIÓN','CUADRANTE','RADIOPERADOR DE TURNO','NRO DE MOVIL','INSPECTOR ASIGNADO AL PROCEDIMIENTO','ESTADO DEL PROCEDIMIENTO','HORA DE ASIGNACION A INSPECTOR','HORA DE ARRIBO','HORA DE TERMINO','INFORME','FINALIZACIÓN','APOYO/ASISTENCIA','COMISARIA','SEREMI','DERIVACIÓN A OTRA COMUNA',"OBSERVACIONES , DATOS GENERALES , ADICIONALES",'CONNOTACIÓN','COORDENADAS']
-# for element in campos_final:
-#     if element not in campos:
-#         df[element] = np.nan
+campos = list(df.columns)
+campos_final = ['NRO','ID ASIGNADO /TICKET','FECHA Y HORA','OPERADOR','CANAL DE INGRESO','TIPO DE RECURRENTE','AREA O SECCIÓN DEL RECURRENTE','NOMBRE DE RECURRENTE','TELEFONO RECURRENTE','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)','CATEGORIA','TIPO DE PROCEDIMIENTO','CALLE','NUMERACIÓN','CALLE QUE INTERSECTA','LUGAR PÚBLICO /  PRIVADO','ACLARATORIA DE LA UBICACIÓN','CUADRANTE','RADIOPERADOR DE TURNO','NRO DE MOVIL','INSPECTOR ASIGNADO AL PROCEDIMIENTO','ESTADO DEL PROCEDIMIENTO','HORA DE ASIGNACION A INSPECTOR','HORA DE ARRIBO','HORA DE TERMINO','INFORME','FINALIZACIÓN','APOYO/ASISTENCIA','COMISARIA','SEREMI','DERIVACIÓN A OTRA COMUNA',"OBSERVACIONES , DATOS GENERALES , ADICIONALES",'CONNOTACIÓN','COORDENADAS']
+for element in campos_final:
+    if element not in campos:
+        df[element] = np.nan
 
 ## Le doy el orden correcto ##
 df = df[['NRO','ID ASIGNADO /TICKET','FECHA Y HORA','OPERADOR','CANAL DE INGRESO','TIPO DE RECURRENTE','AREA O SECCIÓN DEL RECURRENTE','NOMBRE DE RECURRENTE','TELEFONO RECURRENTE','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)','CATEGORIA','TIPO DE PROCEDIMIENTO','CALLE','NUMERACIÓN','CALLE QUE INTERSECTA','LUGAR PÚBLICO /  PRIVADO','ACLARATORIA DE LA UBICACIÓN','CUADRANTE','RADIOPERADOR DE TURNO','NRO DE MOVIL','INSPECTOR ASIGNADO AL PROCEDIMIENTO','ESTADO DEL PROCEDIMIENTO','HORA DE ASIGNACION A INSPECTOR','HORA DE ARRIBO','HORA DE TERMINO','INFORME','FINALIZACIÓN','APOYO/ASISTENCIA','COMISARIA','SEREMI','DERIVACIÓN A OTRA COMUNA',"OBSERVACIONES , DATOS GENERALES , ADICIONALES",'CONNOTACIÓN','COORDENADAS']]
@@ -94,14 +94,36 @@ lfinal = ['7X3 delitos violentos', 'Accidente de tránsito (choque/colisión/atr
 'Incendio o amago', 'Incumplimiento medida cautelar', 'Labores administrativas', 'Maltrato animal', 'Marchas/manifestaciones', 'Mascota atrapada/perdida', 'Microbasural', 'Motochorros ', 'Novedades Central', 'Operativo Conjunto Carabineros', 'Operativo Conjunto a otras Municipalidades', 'Operativo MTT', 'Operativo Seremi Salud', 'Operativo conjunto Delegación Presidencial', 'Operativo conjunto Dirección de Inspección', 'Operativo otras direcciones Municilapales', 'Operativos Conjunto PDI', 'Otra contingencia BNUP', 'Otros', 'P.V.P', 'Patrulla Mixta', 'Patrullaje focalizado Carabineros', 'Patrullaje focalizado Preventivo', 'Patrullaje preventivo general', 'Pavimento en mal estado', 'Persona extraviada / desorientada', 'Persona situación de calle', 'Posible Fallecido/Emergencia de Salud', 
 'Posible sospechoso al interior', 'Postes dañados', 'Punto fijo', 'Riña', 'Robo con intimidación', 'Robo con violencia', 'Robo de especies de o desde vehículo', 'Robo de vehículo en BNUP', 'Robo en BNUP', 'Robo en lugar habitado', 'Robo en lugar no habitado', 'Robo frustrado', 'Robo por sorpresa', 'Ruta calle', 'Semáforo defectuoso', 'Servicio Estadio', 'Servicio FEI', 'Servicio especial Colegios', 'Servicio turístico Plaza Ñuñoa-Barrio Italia', 'Señalética o elemento caida', 'Suicidio/Intento', 'Tapa de servicios', 'Toma establecimiento educacional', 'Trabajos fuera de horario', 'Trafico Drogas', 'Traslado de documentos o funcionarios/limpieza de móvil', 'VIF', 'Vehiculo MAL Estacionado', 'Vehiculo sospechoso', 'Vehículo abandonado', 'Vehículo con encargo', 'Vehículo sospechoso', 'Vigilancia especial', 'Vulneración NNA', 'Vulneración derechos adultos mayores', 'Realizacion de Graffitis / Pintar sin autorización', 'Servicio DRONE', 'nan']
 lprod = list(df['TIPO DE PROCEDIMIENTO'].unique())
-#print(list(df['CUADRANTE'].unique()))
+
+## Correr esto para un chequeo exhaustivo ##
+# print('CUADRANTES ENCONTRADOS:')
+# print(list(df['CUADRANTE'].unique()))
+# print('CANALES DE INGRESO ENCONTRADOS')
+# print(list(df['CANAL DE INGRESO'].unique()))
+# print('CATEGORIAS ENCONTRADAS')
+# print(list(df['CATEGORIA'].unique()))
+
+## Chequeo entradas mal ingresadas ##
+# for index, row in df.iterrows():
+#     if str(row['CATEGORIA']) == 'NO APLICA ':
+#         print(row['NRO'])
+
+## Chequeo tipos de procedimientos mal ingresados ##
 # for element in lprod:
 #     if element not in lfinal:
 #         print(str(element))
 # print('---')
+
+## Imprime entradas con la fecha mal ingresada ##
 # for index, row in df.iterrows():
-#     if str(row['FECHA Y HORA']) == 'nan':
+#     if str(row['TIPO DE PROCEDIMIENTO']) == 'nan':
 #         print(row['NRO'])
+####
+# for index, row in df.iterrows():
+#     if str(row['FECHA Y HORA'])[0] == '4':
+#         print(row['NRO'])
+
+
 
 ## Imprime las entradas con un valor específico en un campo a especificar ##
 # c = 0
@@ -117,5 +139,5 @@ lprod = list(df['TIPO DE PROCEDIMIENTO'].unique())
 # print(s/c)
 
 ## Lo guardo en un nuevo archivo que tendrá el mismo nombre que el original pero + 'P' al final, para poder diferenciarlo ##
-#df.to_csv(new_file+'P.csv', index=False,sep=';')
+df.to_csv(new_file+'P.csv', index=False,sep=';')
 
