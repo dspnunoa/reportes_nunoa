@@ -3,7 +3,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 from shapely.geometry import Point, Polygon
-from folium.plugins import HeatMap
+from folium.plugins import HeatMap, Geocoder
 from datetime import datetime
 
 ## Configuración inicial aplicación ##
@@ -196,7 +196,7 @@ if st.session_state.mostrar_mapa:
         location=[-33.45588734763029, -70.5937367619373],
         zoom_start=13
     )
-
+    Geocoder(zoom=13).add_to(m)
 
     ## Preparo la información para el mapa de calor ##
     heat_data = [[element[0], element[1]] for element in st.session_state.mapa_data]
