@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 ## Aquí va el nombre del archivo a añadir. Se recomienda un nombre breve tipo: infoMESAÑO. Aqui va el nombre sin la extensión (que debe ser siempre csv) ##
-new_file = 'info'
+new_file = 'infomayo'
 
 ## Con la librería pandas creo un dataframe del archivo leído ##
 df = pd.read_csv(new_file+'.csv',sep=';',engine='python')
@@ -104,24 +104,26 @@ lprod = list(df['TIPO DE PROCEDIMIENTO'].unique())
 # print(list(df['CATEGORIA'].unique()))
 
 ## Chequeo entradas mal ingresadas ##
-# for index, row in df.iterrows():
-#     if str(row['CATEGORIA']) == 'NO APLICA ':
-#         print(row['NRO'])
+for index, row in df.iterrows():
+    if str(row['TIPO DE PROCEDIMIENTO']) == 'Cables haciendo corte circuito ':
+        print(row['NRO'])
 
 ## Chequeo tipos de procedimientos mal ingresados ##
-# for element in lprod:
-#     if element not in lfinal:
-#         print(str(element))
-# print('---')
+print('PROCEDIMIENTOS MAL ENCONTRADOS')
+for element in lprod:
+    if element not in lfinal:
+        print((element))
+print('---')
 
 ## Imprime entradas con la fecha mal ingresada ##
-# for index, row in df.iterrows():
-#     if str(row['TIPO DE PROCEDIMIENTO']) == 'nan':
-#         print(row['NRO'])
+print('FECHA MAL INGRESADAS')
+for index, row in df.iterrows():
+    if str(row['FECHA Y HORA']) == 'nan':
+        print(row['NRO'])
 ####
 # for index, row in df.iterrows():
-#     if str(row['FECHA Y HORA'])[0] == '4':
-#         print(row['NRO'])
+    if str(row['FECHA Y HORA'])[0] == '4':
+        print(row['NRO'])
 
 
 
@@ -139,5 +141,5 @@ lprod = list(df['TIPO DE PROCEDIMIENTO'].unique())
 # print(s/c)
 
 ## Lo guardo en un nuevo archivo que tendrá el mismo nombre que el original pero + 'P' al final, para poder diferenciarlo ##
-df.to_csv(new_file+'P.csv', index=False,sep=';')
+#df.to_csv(new_file+'P.csv', index=False,sep=';')
 
