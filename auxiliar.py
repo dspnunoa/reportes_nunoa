@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 ## Aquí va el nombre del archivo a añadir. Se recomienda un nombre breve tipo: infoMESAÑO. Aqui va el nombre sin la extensión (que debe ser siempre csv) ##
-new_file = 'infomayo'
+new_file = 'infomayop'
 
 ## Con la librería pandas creo un dataframe del archivo leído ##
 df = pd.read_csv(new_file+'.csv',sep=';',engine='python')
@@ -105,14 +105,14 @@ lprod = list(df['TIPO DE PROCEDIMIENTO'].unique())
 
 ## Chequeo entradas mal ingresadas ##
 for index, row in df.iterrows():
-    if str(row['TIPO DE PROCEDIMIENTO']) == 'Cables haciendo corte circuito ':
+    if str(row['TIPO DE PROCEDIMIENTO']) == 'Consumo de Alcohol y/o Sustancias Ilicitas ':
         print(row['NRO'])
 
 ## Chequeo tipos de procedimientos mal ingresados ##
 print('PROCEDIMIENTOS MAL ENCONTRADOS')
 for element in lprod:
     if element not in lfinal:
-        print((element))
+        print(str(element)+'.')
 print('---')
 
 ## Imprime entradas con la fecha mal ingresada ##
