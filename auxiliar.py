@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 ## Aquí va el nombre del archivo a añadir. Se recomienda un nombre breve tipo: infoMESAÑO. Aqui va el nombre sin la extensión (que debe ser siempre csv) ##
-new_file = 'infomayop'
+new_file = 'infomayopx'
 
 ## Con la librería pandas creo un dataframe del archivo leído ##
 df = pd.read_csv(new_file+'.csv',sep=';',engine='python')
@@ -105,7 +105,7 @@ lprod = list(df['TIPO DE PROCEDIMIENTO'].unique())
 
 ## Chequeo entradas mal ingresadas ##
 for index, row in df.iterrows():
-    if str(row['TIPO DE PROCEDIMIENTO']) == 'Consumo de Alcohol y/o Sustancias Ilicitas ':
+    if str(row['TIPO DE PROCEDIMIENTO']) == 'Cables provocando chispas ':
         print(row['NRO'])
 
 ## Chequeo tipos de procedimientos mal ingresados ##
@@ -141,5 +141,5 @@ for index, row in df.iterrows():
 # print(s/c)
 
 ## Lo guardo en un nuevo archivo que tendrá el mismo nombre que el original pero + 'P' al final, para poder diferenciarlo ##
-#df.to_csv(new_file+'P.csv', index=False,sep=';')
+df.to_csv(new_file+'P.csv', index=False,sep=';')
 
