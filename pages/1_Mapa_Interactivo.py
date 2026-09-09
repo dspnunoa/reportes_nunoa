@@ -313,7 +313,7 @@ if st.session_state.mostrar_mapa:
             ## Rectángulo o polígono ##
             elif geom_type == 'Polygon':
                 st.markdown("---")
-                st.subheader(f"📊 Análisis de Rectángulo #{idx + 1}")
+                st.subheader(f"📊 Análisis de Polígono #{idx + 1}")
                 
                 coords = drawing['geometry']['coordinates'][0]
                 poligono = Polygon(coords)
@@ -326,13 +326,13 @@ if st.session_state.mostrar_mapa:
                 
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.metric("Puntos dentro del rectángulo", len(puntos_dentro))
+                    st.metric("Puntos dentro del polígono", len(puntos_dentro))
                 with col2:
                     st.metric("Puntos fuera", len(st.session_state.mapa_data) - len(puntos_dentro))
                 
                 ## Creo tablas con la información de los puntos dentro de la figura ##
                 if puntos_dentro:
-                    st.subheader("Puntos dentro del rectángulo")
+                    st.subheader("Puntos dentro del polígono")
                     df_puntos = pd.DataFrame(puntos_dentro)
                     df_puntos.columns = ['Fecha','Categoría','Tipo de Procedimiento','Cuadrante']
                     st.dataframe(df_puntos, width='stretch', hide_index=True)
