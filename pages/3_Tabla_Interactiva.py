@@ -167,4 +167,13 @@ if not palabra:
 st.subheader("Resultados")
 st.write(f"Total de registros: {len(df_filtrado)}")
 #st.dataframe(df_filtrado[df_filtrado.columns[2:26]], width='stretch')
-st.dataframe(df_estilado,width='stretch')
+#st.dataframe(df_estilado,width='stretch')
+
+## PAGINACION ##
+#entradas_por_pagina = st.selectbox("Por página:", [10, 25, 50, 100])
+entradas_por_pagina = 100
+pagina = st.number_input("Página:", 1, max(1, (len(df_estilado) // entradas_por_pagina) + 1))
+inicio = (pagina - 1) * entradas_por_pagina
+fin = inicio + entradas_por_pagina
+st.dataframe(df_estilado.iloc[inicio:fin], width='stretch')
+st.write(f"Página {pagina} de {(len(df_estilado) // entradas_por_pagina) + 1}")
