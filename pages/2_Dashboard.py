@@ -79,53 +79,52 @@ with met1:
     st.metric("Número de Reportes",f"{df.shape[0]}")
 with met2:
     cuad_metric = df['CUADRANTE'].value_counts().index[0]
-    st.metric("Cuadrante con más Reportes",cuad_metric,delta=f"{df['CUADRANTE'].value_counts().iloc[0]}")
+    st.metric("Cuadrante con más Reportes",cuad_metric,delta=f"{df['CUADRANTE'].value_counts().iloc[0]}",delta_arrow="off")
 with met3:
     tipo_metric = df['TIPO DE PROCEDIMIENTO'].value_counts().index[0]
-    st.metric("Procedimiento más común",tipo_metric,delta=f"{df['TIPO DE PROCEDIMIENTO'].value_counts().iloc[0]}",width="content")
+    st.metric("Procedimiento más común",tipo_metric,delta=f"{df['TIPO DE PROCEDIMIENTO'].value_counts().iloc[0]}",width="content",delta_arrow="off")
 with met4:
     hora_metric = df['FECHA Y HORA'].dt.hour.value_counts().index[0]
-    st.metric("Horario Punta",f"{int(hora_metric):02d}:00-{int(hora_metric+1):02d}:00",delta=df['FECHA Y HORA'].dt.hour.value_counts().iloc[0],width="content")
+    st.metric("Horario Punta",f"{int(hora_metric):02d}:00-{int(hora_metric+1):02d}:00",delta=df['FECHA Y HORA'].dt.hour.value_counts().iloc[0],width="content",delta_arrow="off")
 
 met5, met6, met7, met8 = st.columns(4, border=True)
 with met5:
     fecha_metric = df['FECHA Y HORA'].dt.date.value_counts().index[0]
-    st.metric("Día con más reportes",f"{fecha_metric}",delta=df['FECHA Y HORA'].dt.date.value_counts().iloc[0])
+    st.metric("Día con más reportes",f"{fecha_metric}",delta=df['FECHA Y HORA'].dt.date.value_counts().iloc[0], delta_arrow="off")
 with met6:
     st.metric("Días Cubiertos",dias_cubiertos)
 with met7:
     dia_metric = df['FECHA Y HORA'].dt.day_name().value_counts().index[0]
     dict_dias = {'Monday':'Lunes','Tuesday':'Martes','Wednesday':'Miércoles','Thursday':'Jueves','Friday':'Viernes','Saturday':'Sábado','Sunday':'Domingo'}
     dies = dict_dias[dia_metric]
-    st.metric("Día de la semana con más Reportes",dies,delta=f"{df['FECHA Y HORA'].dt.day_name().value_counts().iloc[0]}")
+    st.metric("Día de la semana con más Reportes",dies,delta=f"{df['FECHA Y HORA'].dt.day_name().value_counts().iloc[0]}",delta_arrow="off")
 
 with met8:
     promedio_diario = round(len(df) / max(dias_cubiertos, 1), 1)
-    st.metric("Promedio Diario",f"{promedio_diario} reportes/día",delta=round((prom_hist-promedio_diario),1))
+    st.metric("Promedio Diario",f"{promedio_diario} reportes/día",delta=round((promedio_diario-prom_hist),1),delta_color="inverse")
 
 met9, met10, met11, met12 = st.columns(4, border=True)
 with met9:
     calle_metric = df['CALLE'].value_counts().index[0]
     if calle_metric == 'Nan':
         calle_metric = df['CALLE'].value_counts().index[1]
-    st.metric("Calle con más Reportes",calle_metric,delta=f"{df['CALLE'].value_counts().iloc[0]}")
+    st.metric("Calle con más Reportes",calle_metric,delta=f"{df['CALLE'].value_counts().iloc[0]}",delta_arrow="off")
 with met10:
     if df['LUGAR PÚBLICO /  PRIVADO'].isnull().all():
         st.metric("Tipo de lugar más común",'NO Aplica')
     else:
         lugar_metric = df['LUGAR PÚBLICO /  PRIVADO'].value_counts().index[0]
-        st.metric("Tipo de lugar más común",lugar_metric,delta=f"{df['LUGAR PÚBLICO /  PRIVADO'].value_counts().iloc[0]}")
+        st.metric("Tipo de lugar más común",lugar_metric,delta=f"{df['LUGAR PÚBLICO /  PRIVADO'].value_counts().iloc[0]}",delta_arrow="off")
+## M11 ##
+d11 = dfr[dfr['HORA DE ASIGNACION A INSPECTOR'].apply(is_time) & dfr['HORA DE ARRIBO'].apply(is_time)]
+d11 = d11[d11['HORA DE ARRIBO'] > d11['HORA DE ASIGNACION A INSPECTOR']]
+d11['HORA DE ASIGNACION A INSPECTOR'] = pd.to_timedelta(d11['HORA DE ASIGNACION A INSPECTOR'] + ':00')
+d11['HORA DE ARRIBO'] = pd.to_timedelta(d11['HORA DE ARRIBO'] + ':00')
+d11['DIF'] = d11['HORA DE ARRIBO'] - d11['HORA DE ASIGNACION A INSPECTOR']
+p11 = str(d11['DIF'].mean())
+p11 = p11.split(' ')[2]
+p11 = p11.split('.')[0]
 with met11:
-    dft = df[df['HORA DE ARRIBO'].apply(is_time) & df['HORA DE TERMINO'].apply(is_time)]
-    dft = dft[dft['HORA DE TERMINO'] > dft['HORA DE ARRIBO']]
-    dft['HORA DE ARRIBO'] = pd.to_timedelta(dft['HORA DE ARRIBO'] + ':00')
-    dft['HORA DE TERMINO'] = pd.to_timedelta(dft['HORA DE TERMINO'] + ':00')
-    dft['DIF'] = dft['HORA DE TERMINO'] - dft['HORA DE ARRIBO']
-    prom = str(dft['DIF'].mean())
-    promf = prom.split(' ')[2]
-    promf = promf.split('.')[0]
-    st.metric("Media Tiempo Arribo-Termino",promf)
-with met12:
     dft = df[df['HORA DE ASIGNACION A INSPECTOR'].apply(is_time) & df['HORA DE ARRIBO'].apply(is_time)]
     dft = dft[dft['HORA DE ARRIBO'] > dft['HORA DE ASIGNACION A INSPECTOR']]
     dft['HORA DE ASIGNACION A INSPECTOR'] = pd.to_timedelta(dft['HORA DE ASIGNACION A INSPECTOR'] + ':00')
@@ -134,7 +133,48 @@ with met12:
     prom = str(dft['DIF'].mean())
     promf = prom.split(' ')[2]
     promf = promf.split('.')[0]
-    st.metric("Media Tiempo Asignación-Arribo",promf)
+    formato = "%H:%M:%S"
+    promf_t = datetime.strptime(promf, formato)
+    p11_t = datetime.strptime(p11, formato)
+    if promf_t > p11_t:
+        dif = promf_t-p11_t
+        dc = "red"
+        da = "up"
+    else:
+        dif = p11_t-promf_t
+        dc = "green"
+        da = "down"
+    st.metric("Media Tiempo Asignación-Arribo",promf,delta=f"{str(dif)}", delta_color=dc, delta_arrow=da)
+## M12 ##
+d12 = dfr[dfr['HORA DE ARRIBO'].apply(is_time) & dfr['HORA DE TERMINO'].apply(is_time)]
+d12 = d12[d12['HORA DE TERMINO'] > d12['HORA DE ARRIBO']]
+d12['HORA DE ARRIBO'] = pd.to_timedelta(d12['HORA DE ARRIBO'] + ':00')
+d12['HORA DE TERMINO'] = pd.to_timedelta(d12['HORA DE TERMINO'] + ':00')
+d12['DIF'] = d12['HORA DE TERMINO'] - d12['HORA DE ARRIBO']
+p12 = str(d12['DIF'].mean())
+p12 = p12.split(' ')[2]
+p12 = p12.split('.')[0]
+with met12:
+    dft = df[df['HORA DE ARRIBO'].apply(is_time) & df['HORA DE TERMINO'].apply(is_time)]
+    dft = dft[dft['HORA DE TERMINO'] > dft['HORA DE ARRIBO']]
+    dft['HORA DE ARRIBO'] = pd.to_timedelta(dft['HORA DE ARRIBO'] + ':00')
+    dft['HORA DE TERMINO'] = pd.to_timedelta(dft['HORA DE TERMINO'] + ':00')
+    dft['DIF'] = dft['HORA DE TERMINO'] - dft['HORA DE ARRIBO']
+    prom = str(dft['DIF'].mean())
+    promf = prom.split(' ')[2]
+    promf = promf.split('.')[0]
+    formato = "%H:%M:%S"
+    promf_t = datetime.strptime(promf, formato)
+    p12_t = datetime.strptime(p12, formato)
+    if promf_t > p12_t:
+        dif = promf_t-p12_t
+        dc = "red"
+        da = "up"
+    else:
+        dif = p12_t-promf_t
+        dc = "green"
+        da = "down"
+    st.metric("Media Tiempo Arribo-Termino",promf,delta=f"{str(dif)}", delta_color=dc, delta_arrow=da)
 
 ## Funciones de gráficos y auxiliares para gráficos ##
 def get_rango_horario(hora):
