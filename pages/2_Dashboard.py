@@ -74,7 +74,7 @@ else:
 
 st.subheader(f"ℹ️ Métricas Principales")
 dias_cubiertos = ((df['FECHA Y HORA'].max() - df['FECHA Y HORA'].min()).days)+1
-met1, met2, met3, met4 = st.columns(4)
+met1, met2, met3, met4 = st.columns(4, border=True)
 with met1:
     st.metric("Número de Reportes",f"{df.shape[0]}")
 with met2:
@@ -87,7 +87,7 @@ with met4:
     hora_metric = df['FECHA Y HORA'].dt.hour.value_counts().index[0]
     st.metric("Horario Punta",f"{int(hora_metric):02d}:00-{int(hora_metric+1):02d}:00",delta=df['FECHA Y HORA'].dt.hour.value_counts().iloc[0],width="content")
 
-met5, met6, met7, met8 = st.columns(4)
+met5, met6, met7, met8 = st.columns(4, border=True)
 with met5:
     fecha_metric = df['FECHA Y HORA'].dt.date.value_counts().index[0]
     st.metric("Día con más reportes",f"{fecha_metric}",delta=df['FECHA Y HORA'].dt.date.value_counts().iloc[0])
@@ -103,7 +103,7 @@ with met8:
     promedio_diario = round(len(df) / max(dias_cubiertos, 1), 1)
     st.metric("Promedio Diario",f"{promedio_diario} reportes/día",delta=round((prom_hist-promedio_diario),1))
 
-met9, met10, met11, met12 = st.columns(4)
+met9, met10, met11, met12 = st.columns(4, border=True)
 with met9:
     calle_metric = df['CALLE'].value_counts().index[0]
     if calle_metric == 'Nan':
