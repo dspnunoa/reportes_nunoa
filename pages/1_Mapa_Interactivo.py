@@ -74,6 +74,7 @@ op_hinicio = {0:'00:00',1:'01:00',2:'02:00',3:'03:00',4:'04:00',5:'05:00',6:'06:
 op_hfinal = {0:'00:00',1:'01:00',2:'02:00',3:'03:00',4:'04:00',5:'05:00',6:'06:00',7:'07:00',8:'08:00',9:'09:00',10:'10:00',11:'11:00',12:'12:00',13:'13:00',14:'14:00',15:'15:00',16:'16:00',17:'17:00',18:'18:00',19:'19:00',20:'20:00',21:'21:00',22:'22:00',23:'23:00', 24:'24:00'}
 op_mes = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'}
 op_ano = [2020,2021,2022,2023,2024,2025,2026]
+op_comisaria = ['33° Comisaría','18° Comisaría','No hubo','NO APLICA']
 opi_hinicio = list(op_hinicio.items())
 opi_hfinal = list(op_hfinal.items())
 opi_mes = list(op_mes.items())
@@ -123,12 +124,14 @@ with col12:
     numeracion = st.text_input("Numeración",'',placeholder="Elige")
 with col13:
     palabra = st.text_input("Palabra Clave",'',placeholder="Elige")
+with col14:
+    comisaria = st.selectbox("Comisaría", op_comisaria, index=None,placeholder='Elige')
 
 ## Creo el botón que activa todo el flujo del mapa de calor ##
 if st.button("Visualizar Mapa"):
 
     ## Verifico que haya al menos un filtro seleccionado ##
-    if not any([ingreso, cuadrante, categoria, tipo, hinicio, hfinal, mes, ano, finicio, ffinal, calle, palabra]):
+    if not any([ingreso, cuadrante, categoria, tipo, hinicio, hfinal, mes, ano, finicio, ffinal, calle, palabra, comisaria]):
         st.error("Por favor selecciona al menos un filtro")
     else:
         st.session_state.mostrar_mapa = True
@@ -170,6 +173,8 @@ if st.button("Visualizar Mapa"):
                 df_filtrado = df_filtrado[df_filtrado['NUMERACIÓN'].str.contains(numeracion, case=False, na=False)]
             if palabra:
                 df_filtrado = df_filtrado[df_filtrado['INFORME'].str.contains(palabra, case=False, na=False) | df_filtrado['DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)'].str.contains(palabra, case=False, na=False)]
+            if comisaria:
+                df_filtrado = df_filtrado[df_filtrado['COMISARIA'] == comisaria]
 
             ## Añado por cada entrada las coordenadas del punto y otra información relevante ##
             for index, row in df_filtrado.iterrows():
