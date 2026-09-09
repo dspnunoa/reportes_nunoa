@@ -159,10 +159,8 @@ def highlight(val):
     if palabra and palabra.lower() in str(val).lower():
         return "background-color: yellow"
     return ""
-if palabra:
-    df_estilado = df_filtrado.style.map(highlight)
-if not palabra:
-    df_estilado = df_filtrado
+
+
 ## Muestro el resultado en una tabla ##
 st.subheader("Resultados")
 st.write(f"Total de registros: {len(df_filtrado)}")
@@ -172,8 +170,13 @@ st.write(f"Total de registros: {len(df_filtrado)}")
 ## PAGINACION ##
 #entradas_por_pagina = st.selectbox("Por página:", [10, 25, 50, 100])
 entradas_por_pagina = 100
-pagina = st.number_input("Página:", 1, max(1, (len(df_estilado) // entradas_por_pagina) + 1))
+pagina = st.number_input("Página:", 1, max(1, (len(df_filtrado) // entradas_por_pagina) + 1))
 inicio = (pagina - 1) * entradas_por_pagina
 fin = inicio + entradas_por_pagina
-st.dataframe(df_estilado.iloc[inicio:fin], width='stretch')
-st.write(f"Página {pagina} de {(len(df_estilado) // entradas_por_pagina) + 1}")
+if palabra:
+    df_estilado = df_filtrado.iloc[inicio:fin].style.map(highlight)
+    st.dataframe(df_estilado, width='stretch')
+if not palabra:
+    df_estilado = df_filtrado
+    st.dataframe(df_estilado.iloc[inicio:fin], width='stretch')
+st.write(f"Página {pagina} de {(len(df_filtrado) // entradas_por_pagina) + 1}")
