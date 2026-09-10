@@ -72,7 +72,7 @@ col6, col7, col8, col9, col10 = st.columns(5)
 with col1:
     ingreso = st.selectbox("Vía de Ingreso", op_ingreso, index=None,placeholder='Elige')
 with col2:
-    cuadrante = st.selectbox("Cuadrante", op_cuadrantes, index=None,placeholder='Elige')
+    cuadrante = st.multiselect("Cuadrante", op_cuadrantes, placeholder='Elige')
 with col3:
     categoria = st.selectbox("Categoría", op_categoria, index=None,placeholder='Elige')
 with col4:
@@ -124,7 +124,7 @@ df_filtrado['FECHA Y HORA'] = pd.to_datetime(df_filtrado['FECHA Y HORA'])
 if ingreso:
     df_filtrado = df_filtrado[df_filtrado['CANAL DE INGRESO'] == ingreso]
 if cuadrante:
-     df_filtrado = df_filtrado[df_filtrado['CUADRANTE'] == cuadrante]
+     df_filtrado = df_filtrado[df_filtrado['CUADRANTE'].isin(cuadrante)]
 if categoria:
     df_filtrado = df_filtrado[df_filtrado['CATEGORIA'] == categoria]
 if tipo:
