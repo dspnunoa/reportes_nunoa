@@ -106,16 +106,16 @@ lfinal = ['7X3 delitos violentos', 'Accidente de tránsito (choque/colisión/atr
 lprod = list(df['TIPO DE PROCEDIMIENTO'].unique())
 
 ## Correr esto para un chequeo exhaustivo ##
-print('CUADRANTES ENCONTRADOS:')
-print(list(df['CUADRANTE'].unique()))
-print('CANALES DE INGRESO ENCONTRADOS')
-print(list(df['CANAL DE INGRESO'].unique()))
-print('CATEGORIAS ENCONTRADAS')
-print(list(df['CATEGORIA'].unique()))
+# print('CUADRANTES ENCONTRADOS:')
+# print(list(df['CUADRANTE'].unique()))
+# print('CANALES DE INGRESO ENCONTRADOS')
+# print(list(df['CANAL DE INGRESO'].unique()))
+# print('CATEGORIAS ENCONTRADAS')
+# print(list(df['CATEGORIA'].unique()))
 
 ## Chequeo entradas mal ingresadas ##
 for index, row in df.iterrows():
-    if str(row['CUADRANTE']) == 'Nro. 120.':
+    if str(row['TIPO DE PROCEDIMIENTO']) == 'COLISION':
         print(row['NRO'])
 
 ## Chequeo tipos de procedimientos mal ingresados ##
