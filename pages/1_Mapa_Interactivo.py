@@ -180,7 +180,7 @@ if st.button("Visualizar Mapa"):
             for index, row in df_filtrado.iterrows():
                 if len(str(row['COORDENADAS'])) > 3:
                     cords = str(row['COORDENADAS']).split(',')
-                    c.append([cords[0],cords[1],row['FECHA Y HORA'],row['CATEGORIA'],row['TIPO DE PROCEDIMIENTO'],row['CUADRANTE']])
+                    c.append([cords[0],cords[1],row['FECHA Y HORA'],row['CATEGORIA'],row['TIPO DE PROCEDIMIENTO'],row['CUADRANTE'],row['CALLE']])
             st.session_state.mapa_data = c
             
         except FileNotFoundError:
@@ -335,20 +335,32 @@ if st.session_state.mostrar_mapa:
                 for element in st.session_state.mapa_data:
                     punto = Point(element[1], element[0])
                     if poligono.contains(punto):
-                        puntos_dentro.append([element[2],element[3],element[4],element[5]])
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric("Puntos dentro del círculo", len(puntos_dentro))
-                with col2:
-                    st.metric("Puntos fuera", len(st.session_state.mapa_data) - len(puntos_dentro))
-                
+                        puntos_dentro.append([element[2],element[3],element[4],element[5],element[6]])
+
                 ## Creo tablas con la información de los puntos dentro de la figura ##
                 if puntos_dentro:
-                    st.subheader("Puntos dentro del círculo")
                     df_puntos = pd.DataFrame(puntos_dentro)
-                    df_puntos.columns = ['Fecha','Categoría','Tipo de Procedimiento','Cuadrante']
-                    st.dataframe(df_puntos, width='stretch', hide_index=True)
+                    df_puntos.columns = ['Fecha','Categoría','Tipo de Procedimiento','Cuadrante', 'Calle']
+                    ## MÉTRICAS ##
+                    metm1, metm2, metm3 = st.columns(3, border=True)
+                    with metm1:
+                        st.metric("Puntos en la figura",f"{len(puntos_dentro)}")
+                    with metm2:
+                        st.metric("Cuadrante con más reportes",f"{str(df_puntos['Cuadrante'].value_counts().index[0])}")
+                    with metm3:
+                        st.metric("Procedimiento más común",f"{str(df_puntos['Tipo de Procedimiento'].value_counts().index[0])}")
+                    metm4, metm5, metm6 = st.columns(3, border=True)
+                    with metm4:
+                        hora_metric = df_puntos['Fecha'].dt.hour.value_counts().index[0]
+                        st.metric("Horario Punta",f"{int(hora_metric):02d}:00-{int(hora_metric+1):02d}:00")
+                    with metm5:
+                        fecha_metric = df_puntos['Fecha'].dt.date.value_counts().index[0]
+                        st.metric("Día con más reportes",f"{fecha_metric}")
+                    with metm6:
+                        st.metric("Calle con más Reportes",f"{str(df_puntos['Calle'].value_counts().index[0])}")
+                    ##############
+                    st.subheader("Puntos dentro del círculo")
+                    st.dataframe(df_puntos[df_puntos.columns[0:3]], width='stretch', hide_index=True)
 
                     st.subheader("Resumen por Tipo")
                     conteo_tipos = df_puntos['Tipo de Procedimiento'].value_counts().reset_index()
@@ -367,20 +379,33 @@ if st.session_state.mostrar_mapa:
                 for element in st.session_state.mapa_data:
                     punto = Point(element[1], element[0])
                     if poligono.contains(punto):
-                        puntos_dentro.append([element[2],element[3],element[4],element[5]])
+                        puntos_dentro.append([element[2],element[3],element[4],element[5],element[6]])
                 
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric("Puntos dentro del polígono", len(puntos_dentro))
-                with col2:
-                    st.metric("Puntos fuera", len(st.session_state.mapa_data) - len(puntos_dentro))
                 
                 ## Creo tablas con la información de los puntos dentro de la figura ##
                 if puntos_dentro:
-                    st.subheader("Puntos dentro del polígono")
                     df_puntos = pd.DataFrame(puntos_dentro)
-                    df_puntos.columns = ['Fecha','Categoría','Tipo de Procedimiento','Cuadrante']
-                    st.dataframe(df_puntos, width='stretch', hide_index=True)
+                    df_puntos.columns = ['Fecha','Categoría','Tipo de Procedimiento','Cuadrante','Calle']
+                    ## MÉTRICAS ##
+                    metm1, metm2, metm3 = st.columns(3, border=True)
+                    with metm1:
+                        st.metric("Puntos en la figura",f"{len(puntos_dentro)}")
+                    with metm2:
+                        st.metric("Cuadrante con más reportes",f"{str(df_puntos['Cuadrante'].value_counts().index[0])}")
+                    with metm3:
+                        st.metric("Procedimiento más común",f"{str(df_puntos['Tipo de Procedimiento'].value_counts().index[0])}")
+                    metm4, metm5, metm6 = st.columns(3, border=True)
+                    with metm4:
+                        hora_metric = df_puntos['Fecha'].dt.hour.value_counts().index[0]
+                        st.metric("Horario Punta",f"{int(hora_metric):02d}:00-{int(hora_metric+1):02d}:00")
+                    with metm5:
+                        fecha_metric = df_puntos['Fecha'].dt.date.value_counts().index[0]
+                        st.metric("Día con más reportes",f"{fecha_metric}")
+                    with metm6:
+                        st.metric("Calle con más Reportes",f"{str(df_puntos['Calle'].value_counts().index[0])}")
+                    ##############
+                    st.subheader("Puntos dentro del polígono")
+                    st.dataframe(df_puntos[df_puntos.columns[0:3]], width='stretch', hide_index=True)
                     
                     st.subheader("Resumen por Tipo")
                     conteo_tipos = df_puntos['Tipo de Procedimiento'].value_counts().reset_index()
