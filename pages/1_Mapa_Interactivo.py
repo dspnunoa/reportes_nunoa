@@ -204,6 +204,14 @@ if st.session_state.mostrar_mapa:
     Geocoder(zoom=13).add_to(m)
 
     ## Preparo la información para el mapa de calor ##
+    colores_categoria = {
+        "Seguridad": "blue",
+        "Fiscalización": "orange",
+        "Incivilidades": "green",
+        "Otros": "gray",
+        "Planes Operativos": "violet",
+        "Emergencia/Espacio Públicos": "red"
+    }
     heat_data = [[element[0], element[1]] for element in st.session_state.mapa_data]
     if mostrar_heatmap and len(heat_data) > 0:
         custom_gradient = {
@@ -212,19 +220,56 @@ if st.session_state.mostrar_mapa:
             0.8: 'red'
         }
         HeatMap(heat_data, gradient=custom_gradient,radius=20, blur=15, max_zoom=1).add_to(m)
-    
-    ## Agrego los marcadores de los puntos seleccionados ##
+    if mostrar_heatmap == False:
+        leyenda = {
+            "Seguridad": "#1F3FCE",
+            "Fiscalización": "#E08B1B",
+            "Incivilidades": "#0D920B",
+            "Otros": "#7B7B7B",
+            "Planes Operativos": "#C96DB9",
+            "Emergencia/Espacio Públicos": "#F01B33",
+        }
+        html_items = "".join([
+            f'<div style="display: flex; align-items: center; margin-bottom: 8px;">'
+            f'<div style="width: 20px; height: 20px; background-color: {color}; border-radius: 4px; margin-right: 10px;"></div>'
+            f'<span>{texto}</span>'
+            f'</div>'
+            for texto, color in leyenda.items()
+        ])
+
+        html_final = f'<div style="display: flex; flex-direction: column;">{html_items}</div>'
+        st.html(html_final)
+
     for element in st.session_state.mapa_data:
+        # element[2] = nombre, necesitas obtener categoría
+        # Asumo que tienes acceso a los datos con categoría
+        categoria = element[3]  # Tu función
+        if mostrar_heatmap:
+            color = "black"
+        else:
+            color = colores_categoria.get(categoria, 'gray')
+        
         folium.CircleMarker(
             location=[element[0], element[1]],
-            radius=5,
-            popup=folium.Popup(element[2], max_width=1000),
-            color="#000000",
+            radius=4,
+            color=color,
             fill=True,
-            fillColor="#000000",
-            fillOpacity=0.7,
+            fillColor=color,
+            fillOpacity=0.85,
             weight=1
         ).add_to(m)
+
+    # ## Agrego los marcadores de los puntos seleccionados ##
+    # for element in st.session_state.mapa_data:
+    #     folium.CircleMarker(
+    #         location=[element[0], element[1]],
+    #         radius=4,
+    #         color="#000000",
+    #         fill=True,
+    #         fillColor="#000000",
+    #         fillOpacity=0.85,
+    #         weight=1
+    #     ).add_to(m)
 
     ## Defino los cuadrantes como polígonos y los agrego al mapa ##
     c118 = [[-33.449669,-70.600419], [-33.448523,-70.593123], [-33.44795,-70.571537], [-33.453465,-70.570679], [-33.458979,-70.572309], [-33.454503,-70.580034], [-33.454718,-70.582824], [-33.455541,-70.586472], [-33.454646,-70.59999], [-33.449669,-70.600419]]
