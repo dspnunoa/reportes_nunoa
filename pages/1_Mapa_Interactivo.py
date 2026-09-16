@@ -179,8 +179,10 @@ if st.button("Visualizar Mapa"):
             ## Añado por cada entrada las coordenadas del punto y otra información relevante ##
             for index, row in df_filtrado.iterrows():
                 if len(str(row['COORDENADAS'])) > 3:
-                    cords = str(row['COORDENADAS']).split(',')
-                    c.append([cords[0],cords[1],row['FECHA Y HORA'],row['CATEGORIA'],row['TIPO DE PROCEDIMIENTO'],row['CUADRANTE'],row['CALLE']])
+                    #cords = str(row['COORDENADAS']).split(',')
+                    #c.append([cords[0],cords[1],row['FECHA Y HORA'],row['CATEGORIA'],row['TIPO DE PROCEDIMIENTO'],row['CUADRANTE'],row['CALLE']])
+                    lat, lon = map(float, str(row['COORDENADAS']).split(','))
+                    c.append([lat, lon,row['FECHA Y HORA'],row['CATEGORIA'],row['TIPO DE PROCEDIMIENTO'],row['CUADRANTE'],row['CALLE']])
             st.session_state.mapa_data = c
             
         except FileNotFoundError:
@@ -199,7 +201,8 @@ if st.session_state.mostrar_mapa:
     ## Creo el mapa ##
     m = folium.Map(
         location=[-33.45588734763029, -70.5937367619373],
-        zoom_start=13
+        zoom_start=13,
+        prefer_canvas=True
     )
     Geocoder(zoom=13).add_to(m)
 
