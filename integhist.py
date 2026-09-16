@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Cargo archivo base
-file = "2024p1.csv"
+file = "2024p2.csv"
 df = pd.read_csv(file,sep=";",engine="python")
 
 # Imprimo el número de filas y columnas
