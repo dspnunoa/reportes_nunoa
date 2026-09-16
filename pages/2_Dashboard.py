@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 import numpy as np
 
@@ -288,7 +289,41 @@ def matriz(filtro):
         yaxis_title='Rango Horario'
     )
     st.plotly_chart(fig_heatmap, width='stretch')
-
+## TENDENCIA DIARIA ##
+if finicio and ffinal:
+    st.markdown("---")
+    st.subheader("📉 Tendencia Diaria")
+    df['fecha_completa'] = pd.to_datetime(df['FECHA Y HORA'])
+    df['fecha'] = df['fecha_completa'].dt.date
+    df_linea = df.groupby('fecha').size().reset_index(name='cantidad')
+    df_linea['fecha'] = pd.to_datetime(df_linea['fecha'])
+    df_linea = df_linea.sort_values('fecha')
+    fig_linea = px.line(
+        df_linea,
+        x='fecha',
+        y='cantidad',
+        title='Reportes Diarios',
+        labels={'fecha': 'Fecha', 'cantidad': 'Cantidad'},
+        markers=True
+    )
+    x = np.arange(len(df_linea))
+    coef = np.polyfit(x,df_linea['cantidad'],1)
+    tendencia = np.polyval(coef,x)
+    fig_linea.add_scatter(
+        x=df_linea['fecha'],
+        y=tendencia,
+        mode='lines',
+        name='Tendencia'
+    )
+    fig_linea.update_layout(
+        template='plotly_white',
+        height=400,
+        hovermode='x unified',
+        xaxis_title='Fecha',
+        yaxis_title='Cantidad de Registros'
+    )
+    st.plotly_chart(fig_linea, width='stretch')
+######################
 st.markdown("### 📊 Análisis General")
 ## Gráficos I, II ##
 pie('CUADRANTE')
@@ -322,27 +357,7 @@ st.plotly_chart(fig, width='stretch')
 st.markdown("### 📈 Análisis Temporal")
 
 ## Gráfico VIII ##
-df['fecha_completa'] = pd.to_datetime(df['FECHA Y HORA'])
-df['fecha'] = df['fecha_completa'].dt.date
-df_linea = df.groupby('fecha').size().reset_index(name='cantidad')
-df_linea['fecha'] = pd.to_datetime(df_linea['fecha'])
-df_linea = df_linea.sort_values('fecha')
-fig_linea = px.line(
-    df_linea,
-    x='fecha',
-    y='cantidad',
-    title='Reportes Diarios',
-    labels={'fecha': 'Fecha', 'cantidad': 'Cantidad'},
-    markers=True
-)
-fig_linea.update_layout(
-    template='plotly_white',
-    height=400,
-    hovermode='x unified',
-    xaxis_title='Fecha',
-    yaxis_title='Cantidad de Registros'
-)
-st.plotly_chart(fig_linea, width='stretch')
+# SE TRASLADÓ DE LUGAR
 
 ## Gráfico IX ##
 df['semana'] = df['fecha_completa'].dt.isocalendar().week
