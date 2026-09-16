@@ -42,7 +42,7 @@ with col5:
         st.switch_page("pages/4_Exportar_Reportes.py")
 
 with col6:
-    if st.button("Comparador de Períodos", key='nav_comp', width='stretch'):
+    if st.button("Comparador Períodos", key='nav_comp', width='stretch'):
         st.switch_page("pages/5_Graficas_Comparativas.py")
 
 ## Descripción general de la aplicación ##
@@ -98,7 +98,7 @@ st.write("""
 """)
 
 st.markdown("---")
-st.header("⚖️ Comparador de Períodos")
+st.header("⚖️ Comparador Períodos")
 st.write("""
         Gráfica comparativa del comportamiento de los tipos de procedimientos. Seleccione una categoría o un conjunto de tipos de procedimientos y un rango de fechas (verificar que este rango de fechas tenga información en más de un año diferente, para que lo que se muestre tenga sentido). Se desplegará un gráfico de barras con todos los procedimientos seleccionados por año, una tabla con lo anterior, y además por cada tipo de procedimiento un gráfico de barras con el comportamiento semanal en cada año disponible.
 """)

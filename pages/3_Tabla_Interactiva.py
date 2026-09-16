@@ -36,7 +36,7 @@ with col5:
         st.switch_page("pages/4_Exportar_Reportes.py")
 
 with col6:
-    if st.button("Comparador de Períodos", key='nav_comp', width='stretch'):
+    if st.button("Comparador Períodos", key='nav_comp', width='stretch'):
         st.switch_page("pages/5_Graficas_Comparativas.py")
 st.markdown("---")
 ## Información sobre la data comprendida en la aplicación ##

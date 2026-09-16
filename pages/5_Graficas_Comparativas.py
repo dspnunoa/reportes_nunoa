@@ -4,9 +4,9 @@ import plotly.express as px
 import streamlit as st
 
 ## Configuración inicial aplicación ##
-st.set_page_config(page_title="Comparador de Períodos", layout="wide")
+st.set_page_config(page_title="Comparador Períodos", layout="wide")
 st.logo("./logo.png",size='large',icon_image="./logo.png")
-st.title("⚖️ Comparador de Períodos Reportes Central Ñuñoa 2026")
+st.title("⚖️ Comparador Períodos Reportes Central Ñuñoa 2026")
 
 ## Validación por seguridad ##
 from auth import check_auth
@@ -37,7 +37,7 @@ with col5:
         st.switch_page("pages/4_Exportar_Reportes.py")
 
 with col6:
-    if st.button("Comparador de Períodos", key='nav_comp', width='stretch', type="primary"):
+    if st.button("Comparador Períodos", key='nav_comp', width='stretch', type="primary"):
         st.switch_page("pages/5_Graficas_Comparativas.py")
 st.markdown("---")
 ## Información sobre la data comprendida en la aplicación ##
