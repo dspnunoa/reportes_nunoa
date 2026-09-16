@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import numpy as np
+from scipy import stats
 
 ## Configuración inicial aplicación ##
 st.set_page_config(page_title="Dashboard", layout="wide")
@@ -324,6 +325,191 @@ if finicio and ffinal:
     )
     st.plotly_chart(fig_linea, width='stretch')
 ######################
+## ESTADISTICAS DESCRIPTIVAS ##
+with st.expander("📈 Estadísticas Avanzadas", expanded=False):
+    
+    # Seleccionar qué analizar
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        tipo_analisis = st.selectbox(
+            "Analizar por:",
+            ["Tipo de Procedimiento", "Cuadrante", "Categoría"]
+        )
+    
+    with col2:
+        metrica = st.selectbox(
+            "Métrica:",
+            ["Frecuencia de Reportes", "Duración (si disponible)"]
+        )
+    
+    # CALCULAR ESTADÍSTICAS
+    if tipo_analisis == "Tipo de Procedimiento":
+        columna = 'TIPO DE PROCEDIMIENTO'
+    elif tipo_analisis == "Cuadrante":
+        columna = 'CUADRANTE'
+    else:
+        columna = 'CATEGORIA'
+    
+    # Agrupar y contar
+    datos_agrupados = df.groupby(columna).size().reset_index(name='frecuencia')
+    
+    # Crear tabla de estadísticas
+    estadisticas = {
+        'Categoría': datos_agrupados[columna],
+        'Min': datos_agrupados['frecuencia'].min(),
+        'Max': datos_agrupados['frecuencia'].max(),
+        'Promedio': datos_agrupados['frecuencia'].mean(),
+        'Mediana': datos_agrupados['frecuencia'].median(),
+        'Desv. Estándar': datos_agrupados['frecuencia'].std(),
+        'Q1 (25%)': datos_agrupados['frecuencia'].quantile(0.25),
+        'Q3 (75%)': datos_agrupados['frecuencia'].quantile(0.75),
+        'Total': datos_agrupados['frecuencia'].sum()
+    }
+    
+    # TABLA GENERAL
+    st.subheader(f"📊 Estadísticas Generales - {tipo_analisis}")
+    
+    tabla_general = pd.DataFrame({
+        'Métrica': ['Mínimo', 'Máximo', 'Promedio', 'Mediana', 'Desv. Estándar', 'Q1 (25%)', 'Q3 (75%)', 'Total'],
+        'Valor': [
+            f"{datos_agrupados['frecuencia'].min():.0f}",
+            f"{datos_agrupados['frecuencia'].max():.0f}",
+            f"{datos_agrupados['frecuencia'].mean():.2f}",
+            f"{datos_agrupados['frecuencia'].median():.0f}",
+            f"{datos_agrupados['frecuencia'].std():.2f}",
+            f"{datos_agrupados['frecuencia'].quantile(0.25):.0f}",
+            f"{datos_agrupados['frecuencia'].quantile(0.75):.0f}",
+            f"{datos_agrupados['frecuencia'].sum():.0f}"
+        ]
+    })
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.dataframe(tabla_general, width='stretch', hide_index=True)
+    
+    with col2:
+        # Indicador de variabilidad
+        cv = (datos_agrupados['frecuencia'].std() / datos_agrupados['frecuencia'].mean()) * 100
+        st.metric("Coef. de Variación", f"{cv:.1f}%", "Indica variabilidad")
+    
+    # TABLA DETALLADA POR CATEGORÍA
+    st.subheader(f"📋 Detalles por {tipo_analisis}")
+    
+    tabla_detallada = datos_agrupados.copy()
+    tabla_detallada.columns = [tipo_analisis, 'Frecuencia']
+    tabla_detallada['% del Total'] = (tabla_detallada['Frecuencia'] / tabla_detallada['Frecuencia'].sum() * 100).round(2)
+    tabla_detallada['Desviación del Promedio'] = (tabla_detallada['Frecuencia'] - datos_agrupados['frecuencia'].mean()).round(2)
+    tabla_detallada = tabla_detallada.sort_values('Frecuencia', ascending=False)
+    
+    st.dataframe(tabla_detallada, width='stretch', hide_index=True)
+    
+    # VISUALIZACIONES
+    st.markdown("---")
+    st.subheader("📊 Visualizaciones")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Box plot
+        fig_box = go.Figure()
+        fig_box.add_trace(go.Box(
+            y=datos_agrupados['frecuencia'],
+            name='Distribución',
+            marker_color='#1f77b4',
+            boxmean='sd'  # Muestra promedio y desv. estándar
+        ))
+        
+        fig_box.update_layout(
+            title="Box Plot - Distribución de Frecuencias",
+            yaxis_title="Frecuencia",
+            showlegend=False,
+            height=400
+        )
+        
+        st.plotly_chart(fig_box, width='stretch')
+    
+    with col2:
+        # Histograma
+        fig_hist = px.histogram(
+            datos_agrupados,
+            x='frecuencia',
+            nbins=15,
+            title="Histograma - Distribución de Frecuencias",
+            labels={'frecuencia': 'Frecuencia', 'count': 'Cantidad'}
+        )
+        
+        fig_hist.update_traces(marker_color='#ff7f0e')
+        fig_hist.update_layout(height=400)
+        
+        st.plotly_chart(fig_hist, width='stretch')
+    
+    # Gráfico de barras ordenado
+    fig_barras = px.bar(
+        tabla_detallada.head(15),
+        x=tipo_analisis,
+        y='Frecuencia',
+        title=f"Top 15 {tipo_analisis} - Frecuencia",
+        labels={'Frecuencia': 'Total de Reportes'},
+        color='Frecuencia',
+        color_continuous_scale='Blues'
+    )
+    
+    fig_barras.update_layout(height=400)
+    st.plotly_chart(fig_barras, width='stretch')
+    
+    # ANÁLISIS ESTADÍSTICO AVANZADO
+    st.markdown("---")
+    st.subheader("🔬 Análisis Estadístico Avanzado")
+    
+    # Normalidad (Shapiro-Wilk)
+    if len(datos_agrupados) > 3:
+        statistic, p_value = stats.shapiro(datos_agrupados['frecuencia'])
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            normalidad = "✅ Normal" if p_value > 0.05 else "❌ No Normal"
+            st.metric("Test Shapiro-Wilk", normalidad, f"p={p_value:.4f}")
+        
+        with col2:
+            # Simetría (Skewness)
+            skewness = stats.skew(datos_agrupados['frecuencia'])
+            if abs(skewness) < 0.5:
+                simetr = "Simétrica"
+            elif skewness > 0:
+                simetr = "Sesgada Derecha"
+            else:
+                simetr = "Sesgada Izquierda"
+            
+            st.metric("Simetría (Skewness)", simetr, f"{skewness:.2f}")
+        
+        with col3:
+            # Curtosis
+            kurtosis = stats.kurtosis(datos_agrupados['frecuencia'])
+            if abs(kurtosis) < 0.5:
+                kurt = "Normal"
+            elif kurtosis > 0:
+                kurt = "Leptocúrtica"
+            else:
+                kurt = "Platicúrtica"
+            
+            st.metric("Curtosis", kurt, f"{kurtosis:.2f}")
+    
+    # INTERPRETACIÓN
+    st.markdown("---")
+    st.info("""
+    **Interpretación:**
+    - **Min/Max**: Valores extremos
+    - **Promedio/Mediana**: Centro de los datos
+    - **Desv. Estándar**: Cuánto varían los datos
+    - **Q1/Q3**: Rango del 50% central de datos
+    - **Coef. Variación**: >30% indica alta variabilidad
+    - **Normalidad**: ¿Siguen distribución normal?
+    - **Simetría**: ¿Están balanceados los datos?
+    """)
+###############################
 st.markdown("### 📊 Análisis General")
 ## Gráficos I, II ##
 pie('CUADRANTE')
