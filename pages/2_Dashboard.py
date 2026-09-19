@@ -324,7 +324,189 @@ if finicio and ffinal:
         yaxis_title='Cantidad de Registros'
     )
     st.plotly_chart(fig_linea, width='stretch')
-######################
+## ANOMALIAS ##
+def detectar_anomalias(valores):
+    """
+    Detecta anomalías usando método de desviación estándar
+    Anomalía = valor > (promedio + 2*desv_estándar)
+    """
+    promedio = valores.mean()
+    desv_est = valores.std()
+    limite = promedio + (2 * desv_est)
+    
+    anomalias = valores > limite
+    return anomalias, limite, promedio, desv_est
+with st.expander("⚠️ Alerta de Anomalías", expanded=False):
+    # Agrupar por tipo y contar
+    datos_por_tipo = df.groupby('TIPO DE PROCEDIMIENTO').size().reset_index(name='frecuencia')
+    datos_por_cuadrante = df.groupby('CUADRANTE').size().reset_index(name='frecuencia')
+    datos_por_categoria = df.groupby('CATEGORIA').size().reset_index(name='frecuencia')
+
+    # Detectar anomalías en cada grupo
+    anomalias_tipo, limite_tipo, prom_tipo, desv_tipo = detectar_anomalias(datos_por_tipo['frecuencia'])
+    anomalias_cuad, limite_cuad, prom_cuad, desv_cuad = detectar_anomalias(datos_por_cuadrante['frecuencia'])
+    anomalias_cat, limite_cat, prom_cat, desv_cat = detectar_anomalias(datos_por_categoria['frecuencia'])
+
+    # RECOPILAR TODAS LAS ANOMALÍAS
+    alertas_totales = []
+
+    for idx, row in datos_por_tipo.iterrows():
+        if anomalias_tipo[idx]:
+            alertas_totales.append({
+                'Tipo': 'Tipo de Procedimiento',
+                'Valor': row['TIPO DE PROCEDIMIENTO'],
+                'Frecuencia': row['frecuencia'],
+                'Límite Normal': f"{limite_tipo:.0f}",
+                'Severidad': 'Alta' if row['frecuencia'] > limite_tipo * 1.5 else 'Media'
+            })
+
+    for idx, row in datos_por_cuadrante.iterrows():
+        if anomalias_cuad[idx]:
+            alertas_totales.append({
+                'Tipo': 'Cuadrante',
+                'Valor': row['CUADRANTE'],
+                'Frecuencia': row['frecuencia'],
+                'Límite Normal': f"{limite_cuad:.0f}",
+                'Severidad': 'Alta' if row['frecuencia'] > limite_cuad * 1.5 else 'Media'
+            })
+
+    for idx, row in datos_por_categoria.iterrows():
+        if anomalias_cat[idx]:
+            alertas_totales.append({
+                'Tipo': 'Categoría',
+                'Valor': row['CATEGORIA'],
+                'Frecuencia': row['frecuencia'],
+                'Límite Normal': f"{limite_cat:.0f}",
+                'Severidad': 'Alta' if row['frecuencia'] > limite_cat * 1.5 else 'Media'
+            })
+
+    # MOSTRAR ALERTAS
+    if alertas_totales:
+        df_alertas = pd.DataFrame(alertas_totales)
+        
+        # Separar por severidad
+        alertas_altas = df_alertas[df_alertas['Severidad'] == 'Alta']
+        alertas_medias = df_alertas[df_alertas['Severidad'] == 'Media']
+        
+        # Métricas de resumen
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric(
+                "🔴 Alertas Críticas",
+                len(alertas_altas),
+                "Valores muy por encima del promedio"
+            )
+        
+        with col2:
+            st.metric(
+                "🟡 Alertas Medias",
+                len(alertas_medias),
+                "Valores ligeramente elevados"
+            )
+        
+        with col3:
+            st.metric(
+                "ℹ️ Total Anomalías",
+                len(df_alertas),
+                "Registros inusuales detectados"
+            )
+        
+        # MOSTRAR ALERTAS CRÍTICAS
+        if len(alertas_altas) > 0:
+            st.error("🔴 **ALERTAS CRÍTICAS** - Revisar inmediatamente")
+            
+            for idx, alerta in alertas_altas.iterrows():
+                st.markdown(f"""
+                **{alerta['Tipo']}: {alerta['Valor']}**
+                - Frecuencia: {alerta['Frecuencia']} procedimientos
+                - Límite normal: {alerta['Límite Normal']} procedimientos
+                - Exceso: {alerta['Frecuencia'] - float(alerta['Límite Normal']):.0f} por encima
+                """)
+        
+        # MOSTRAR ALERTAS MEDIAS
+        if len(alertas_medias) > 0:
+            st.warning("🟡 **ALERTAS MEDIAS** - Monitorear")
+            
+            for idx, alerta in alertas_medias.iterrows():
+                st.markdown(f"""
+                **{alerta['Tipo']}: {alerta['Valor']}**
+                - Frecuencia: {alerta['Frecuencia']} procedimientos
+                - Límite normal: {alerta['Límite Normal']} procedimientos
+                """)
+        
+        # TABLA DE TODAS LAS ANOMALÍAS
+        st.subheader("📋 Tabla de Anomalías Detectadas")
+        st.dataframe(
+            df_alertas.sort_values('Frecuencia', ascending=False),
+            width='stretch',
+            hide_index=True
+        )
+
+    else:
+        st.success("✅ No hay anomalías detectadas - Todo normal")
+
+    # ==================== INFORMACIÓN ESTADÍSTICA ====================
+
+    st.markdown("---")
+    st.subheader("📊 Parámetros de Detección")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric(
+            "Promedio (Tipo)",
+            f"{prom_tipo:.1f}",
+            "Procedimientos promedio por tipo"
+        )
+
+    with col2:
+        st.metric(
+            "Desv. Estándar (Tipo)",
+            f"{desv_tipo:.1f}",
+            "Variabilidad de los datos"
+        )
+
+    with col3:
+        st.metric(
+            "Límite de Anomalía",
+            f"{limite_tipo:.0f}",
+            "Valor que dispara alerta"
+        )
+
+    st.info("""
+    **¿Cómo funciona?**
+    - Se calcula el promedio de cada categoría
+    - Se suma 2 × desviación estándar
+    - Si un valor supera este límite → **ANOMALÍA**
+    - Severidad Alta: valor > límite × 1.5
+    - Severidad Media: valor entre límite y límite × 1.5
+    """)
+
+    # ==================== AGREGAR ALERTAS A LA TABLA INTERACTIVA ====================
+
+    # Función para colorear filas con anomalías
+    def aplicar_colores_anomalias(df_mostrar, tipo_alerta='TIPO DE PROCEDIMIENTO'):
+        """Marca filas con anomalías para visualización"""
+        
+        def highlight_fila(row):
+            # Contar frecuencia de este tipo
+            frecuencia = len(df[df[tipo_alerta] == row[tipo_alerta]])
+            
+            anomalia, limite, prom, desv = detectar_anomalias(
+                df.groupby(tipo_alerta).size().values
+            )
+            
+            limite_val = prom + (2 * desv)
+            
+            if frecuencia > limite_val:
+                return ['background-color: #ffcccc'] * len(row)  # Rojo claro
+            else:
+                return [''] * len(row)
+        
+        return df_mostrar.style.apply(highlight_fila, axis=1)
+
+###############
 ## ESTADISTICAS DESCRIPTIVAS ##
 with st.expander("📈 Estadísticas Avanzadas", expanded=False):
     
