@@ -74,7 +74,12 @@ with st.expander("🚨 Análisis de Calles Peligrosas", expanded=False):
     st.subheader("🏆 Top 20 Calles con Mayor Actividad")
 
     # Contar procedimientos por calle
-    top_calles = df['CALLE'].value_counts().head(20).reset_index(name='Total Procedimientos')
+    top_calles = (
+        df.loc[df['CALLE'].ne('Nan'), 'CALLE']
+        .value_counts()
+        .head(20)
+        .reset_index(name='Total Procedimientos')
+    )
 
     # Agregar información adicional
     datos_enriquecidos = []
