@@ -115,7 +115,7 @@ lprod = list(df['TIPO DE PROCEDIMIENTO'].unique())
 
 ## Chequeo entradas mal ingresadas ##
 for index, row in df.iterrows():
-    if str(row['CUADRANTE']) == ' ':
+    if str(row['TIPO DE PROCEDIMIENTO']) == 'nan':
         print(row['NRO'])
 
 ## Chequeo tipos de procedimientos mal ingresados ##
