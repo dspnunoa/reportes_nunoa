@@ -169,7 +169,7 @@ st.write(f"Total de registros: {len(df_filtrado)}")
 
 ## PAGINACION ##
 #entradas_por_pagina = st.selectbox("Por página:", [10, 25, 50, 100])
-entradas_por_pagina = 100
+entradas_por_pagina = 250
 pagina = st.number_input("Página:", 1, max(1, (len(df_filtrado) // entradas_por_pagina) + 1))
 inicio = (pagina - 1) * entradas_por_pagina
 fin = inicio + entradas_por_pagina
