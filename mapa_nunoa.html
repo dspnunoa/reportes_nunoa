@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Puntos y Cuadrantes - Comuna de Ñuñoa</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background: #1e293b;
+            color: #fff;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        header .subtitle {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        #map {
+            flex: 1;
+            width: 100%;
+            z-index: 1;
+        }
+        .custom-popup .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            padding: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .popup-card {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .popup-card .title {
+            font-weight: 700;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .popup-card .badge {
+            background: #2563eb;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .popup-card .info-row {
+            margin-bottom: 4px;
+            color: #475569;
+        }
+        .popup-card .info-row strong {
+            color: #1e293b;
+        }
+        .legend {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            line-height: 1.6;
+            font-size: 0.85rem;
+        }
+        .legend h4 {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #0f172a;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 4px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            border-radius: 3px;
+            opacity: 0.85;
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>📍 Mapa Ñuñoa - INGRESE TITULO</h1>
+            <div class="subtitle">SUBTITULO</div>
+        </div>
+        <div class="subtitle">Total Puntos: N PUNTOS</div>
+    </header>
+
+    <div id="map"></div>
+
+    <script>
+        // Data definitions
+        const polygons = {"118": [[-33.449669, -70.600419], [-33.448523, -70.593123], [-33.44795, -70.571537], [-33.453465, -70.570679], [-33.458979, -70.572309], [-33.454503, -70.580034], [-33.454718, -70.582824], [-33.455541, -70.586472], [-33.454646, -70.59999], [-33.449669, -70.600419]], "119": [[-33.454682, -70.599775], [-33.455613, -70.587158], [-33.454897, -70.583038], [-33.454467, -70.580034], [-33.457904, -70.574799], [-33.458979, -70.572267], [-33.46954, -70.576601], [-33.473406, -70.58454], [-33.474086, -70.588918], [-33.473728, -70.592093], [-33.472261, -70.592051], [-33.470578, -70.589561], [-33.459551, -70.586772], [-33.459014, -70.599904], [-33.454682, -70.599775]], "120": [[-33.459086, -70.59999], [-33.459551, -70.586901], [-33.47065, -70.589561], [-33.472153, -70.592008], [-33.473764, -70.592051], [-33.473478, -70.59587], [-33.473836, -70.601149], [-33.471043, -70.601277], [-33.470793, -70.600591], [-33.459086, -70.59999]], "121": [[-33.444835, -70.601106], [-33.444584, -70.598295], [-33.447753, -70.592823], [-33.439249, -70.587158], [-33.433984, -70.582523], [-33.436312, -70.578361], [-33.438031, -70.573382], [-33.447986, -70.571623], [-33.448559, -70.59351], [-33.449633, -70.600462], [-33.444835, -70.601106]], "129": [[-33.449848, -70.63149], [-33.447941, -70.622263], [-33.453483, -70.620589], [-33.460626, -70.621051], [-33.461118, -70.62193], [-33.460948, -70.624226], [-33.461628, -70.625085], [-33.46118, -70.625739], [-33.455559, -70.627434], [-33.455309, -70.627702], [-33.455291, -70.628282], [-33.45564, -70.629827], [-33.449848, -70.63149]], "130": [[-33.446831, -70.613852], [-33.446429, -70.611298], [-33.445659, -70.608702], [-33.444763, -70.600934], [-33.449741, -70.600548], [-33.454306, -70.600054], [-33.455291, -70.599625], [-33.464564, -70.600247], [-33.464313, -70.601621], [-33.46238, -70.606127], [-33.461771, -70.61501], [-33.461377, -70.614967], [-33.460787, -70.615332], [-33.460845, -70.614726], [-33.453187, -70.613616], [-33.453304, -70.612446], [-33.446831, -70.613852]], "131": [[-33.461682, -70.615], [-33.462263, -70.606202], [-33.462523, -70.604872], [-33.464313, -70.601481], [-33.464582, -70.600312], [-33.470829, -70.600634], [-33.470918, -70.600934], [-33.471079, -70.601192], [-33.473782, -70.601234], [-33.474462, -70.613594], [-33.467643, -70.61398], [-33.465656, -70.614946], [-33.462604, -70.61516], [-33.461682, -70.615]], "132": [[-33.455501, -70.629838], [-33.455201, -70.62847], [-33.455161, -70.627949], [-33.455273, -70.627445], [-33.461091, -70.625814], [-33.461673, -70.625106], [-33.460912, -70.624269], [-33.4611, -70.62193], [-33.460849, -70.621415], [-33.461234, -70.620975], [-33.461655, -70.615042], [-33.462639, -70.615096], [-33.465575, -70.614914], [-33.46766, -70.61398], [-33.474453, -70.613605], [-33.474928, -70.623014], [-33.470077, -70.624323], [-33.468931, -70.625954], [-33.455501, -70.629838]], "133": [[-33.447941, -70.622252], [-33.447243, -70.618776], [-33.448362, -70.618411], [-33.447548, -70.613744], [-33.453277, -70.612457], [-33.453196, -70.613594], [-33.46084, -70.614731], [-33.460778, -70.615289], [-33.461324, -70.61501], [-33.461691, -70.61501], [-33.46127, -70.620965], [-33.460876, -70.621383], [-33.460626, -70.621051], [-33.453483, -70.620632], [-33.447941, -70.622252]]};
+        const points = [{"fecha": "15/02/2026 22:00", "cuadrante": "119", "lat": -33.46873847615995, "lon": -70.5809705316802}, {"fecha": "18/02/2026 22:00", "cuadrante": "130", "lat": -33.449187680570155, "lon": -70.62681241633769}, {"fecha": "05/03/2026 23:25", "cuadrante": "132", "lat": -33.464657617805045, "lon": -70.61874776051606}, {"fecha": "10/03/2026 21:05", "cuadrante": "119", "lat": -33.45791030127565, "lon": -70.58064547400895}, {"fecha": "13/03/2026 23:50", "cuadrante": "132", "lat": -33.46112835829808, "lon": -70.61817817400878}, {"fecha": "17/03/2026 17:15", "cuadrante": "119", "lat": -33.45651033946066, "lon": -70.59765573814082}, {"fecha": "22/03/2026 10:10", "cuadrante": "118", "lat": -33.45422519519113, "lon": -70.58252691818821}, {"fecha": "26/03/2026 12:55", "cuadrante": "118", "lat": -33.46718407328824, "lon": -70.57998400284438}, {"fecha": "28/03/2026 23:25", "cuadrante": "119", "lat": -33.46822545525786, "lon": -70.58079263197166}, {"fecha": "20/04/2026 19:45", "cuadrante": "129", "lat": -33.448806191490974, "lon": -70.62681296227912}, {"fecha": "07/05/2026 15:24", "cuadrante": "132", "lat": -33.46467792095909, "lon": -70.62041788935183}, {"fecha": "07/05/2026 21:20", "cuadrante": "131", "lat": -33.464244567808926, "lon": -70.6046569470235}, {"fecha": "13/05/2026 8:47", "cuadrante": "132", "lat": -33.46398076731875, "lon": -70.61918381818775}, {"fecha": "16/05/2026 23:08", "cuadrante": "129", "lat": -33.45511670458455, "lon": -70.62352864702387}, {"fecha": "20/05/2026 22:13", "cuadrante": "120", "lat": -33.47210988140553, "lon": -70.59179184702319}, {"fecha": "22/05/2026 17:07", "cuadrante": "119", "lat": -33.46487776851609, "lon": -70.58133857400868}, {"fecha": "02/06/2026 17:48", "cuadrante": "118", "lat": -33.467617274375876, "lon": -70.59203428750118}, {"fecha": "29/06/2026 19:30", "cuadrante": "130", "lat": -33.45159958309278, "lon": -70.61102234517337}, {"fecha": "27/07/2026 17:10", "cuadrante": "132", "lat": -33.464606318745396, "lon": -70.62032132982968}, {"fecha": "02/08/2026 19:50", "cuadrante": "129", "lat": -33.45974965640368, "lon": -70.61389028935214}, {"fecha": "07/08/2026 22:30", "cuadrante": "132", "lat": -33.4652573692996, "lon": -70.62103412982977}, {"fecha": "10/08/2026 0:50", "cuadrante": "119", "lat": -33.455746600841984, "lon": -70.57969780284479}, {"fecha": "26/08/2026 20:30", "cuadrante": "131", "lat": -33.45940150322473, "lon": -70.62432403168056}, {"fecha": "01/09/2026 7:15", "cuadrante": "129", "lat": -33.45416970043231, "lon": -70.62164537400909}, {"fecha": "04/09/2026 20:28", "cuadrante": "132", "lat": -33.465506020324405, "lon": -70.6198557181877}, {"fecha": "07/10/2026 0:11", "cuadrante": "121", "lat": -33.452219248554236, "lon": -70.57917090284501}];
+        // const colors = {"118": "#e6194B", "119": "#3cb44b", "120": "#ffe119", "121": "#4363d8", "129": "#f58231", "130": "#911eb4", "131": "#42d4f4", "132": "#f032e6", "133": "#000000"};
+        const colors = {"118": "#000000", "119": "#000000", "120": "#000000", "121": "#000000", "129": "#000000", "130": "#000000", "131": "#000000", "132": "#000000", "133": "#000000"};
+
+        // Initialize Map centered on Ñuñoa
+        const map = L.map('map').setView([-33.457, -70.600], 14);
+
+        // Tile layer (OpenStreetMap)
+        // Capa principal: Esri WorldStreetMap (gratuita, sin API Key requerida y con alta resolución de calles)
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+        }).addTo(map);
+
+        // Add Polygons for Cuadrantes
+        Object.keys(polygons).forEach(cuadrante => {
+            const polyCoords = polygons[cuadrante];
+            const color = colors[cuadrante] || '#3388ff';
+            
+            const polygon = L.polygon(polyCoords, {
+                color: color,
+                weight: 2,
+                fillColor: color,
+                fillOpacity: 0.25
+            }).addTo(map);
+
+            polygon.bindTooltip("<b>Cuadrante " + cuadrante + "</b>", {
+                sticky: true,
+                className: 'polygon-tooltip'
+            });
+        });
+
+        // Add Markers for Points
+        points.forEach(point => {
+            const qColor = colors[point.cuadrante] || '#2563eb';
+            
+            // Custom Circle Marker for crisp display
+            const marker = L.circleMarker([point.lat, point.lon], {
+                radius: 7,
+                fillColor: qColor,
+                color: '#ffffff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+            }).addTo(map);
+
+            const popupContent = `
+                <div class="popup-card">
+                    <div class="title">
+                        <span>Detalle Punto</span>
+                        <span class="badge" style="background-color: ${qColor}">C-${point.cuadrante}</span>
+                    </div>
+                    <div class="info-row"><strong>📅 Fecha y Hora:</strong> ${point.fecha}</div>
+                    <div class="info-row"><strong>📐 Cuadrante:</strong> ${point.cuadrante}</div>
+                    <div class="info-row"><strong>🏷️ Tipo:</strong> ${point.tipo ?? "Sin especificar"}</div>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent, { className: 'custom-popup' });
+        });
+
+        // Add Legend
+        const legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function (map) {
+            const div = L.DomUtil.create('div', 'legend');
+            div.innerHTML = '<h4>Cuadrantes</h4>';
+            Object.keys(polygons).forEach(q => {
+                div.innerHTML += `
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: ${colors[q] || '#3388ff'}"></span>
+                        <span>Cuadrante ${q}</span>
+                    </div>
+                `;
+            });
+            return div;
+        };
+        legend.addTo(map);
+    </script>
+</body>
+</html>

@@ -59,6 +59,8 @@ def fcanalingreso(valor):
         return 'OPERADOR CÁMARAS'
     elif valor == 'Iniciativa Propia':
         return 'INTERNO'
+    elif valor == 'Radial ':
+        return 'INTERNO'
     elif valor == 'VIA RADIAL':
         return 'INTERNO'
     elif valor == 'RADIAL':

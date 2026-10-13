@@ -1,10 +1,12 @@
-import pandas as pd
-import streamlit as st
 import folium
+import json
+import pandas as pd
+import re
+import streamlit as st
 from streamlit_folium import st_folium
 from shapely.geometry import Point, Polygon
 from folium.plugins import HeatMap, Geocoder
-from datetime import datetime
+from pathlib import Path
 
 ## Configuración inicial aplicación ##
 st.set_page_config(page_title="Mapa Interactivo", layout="wide")
@@ -127,8 +129,13 @@ with col13:
 with col14:
     comisaria = st.selectbox("Comisaría", op_comisaria, index=None,placeholder='Elige')
 
+b1, b2 = st.columns([1,1])
+with b1:
+    b_visual = st.button("Visualizar Mapa")
+with b2:
+    b_html = st.button("Descargar HTML")
 ## Creo el botón que activa todo el flujo del mapa de calor ##
-if st.button("Visualizar Mapa"):
+if b_visual:
 
     ## Verifico que haya al menos un filtro seleccionado ##
     if not any([ingreso, cuadrante, categoria, tipo, hinicio, hfinal, mes, ano, finicio, ffinal, calle, palabra, comisaria]):
@@ -414,3 +421,130 @@ if st.session_state.mostrar_mapa:
                     conteo_tipos = df_puntos['Tipo de Procedimiento'].value_counts().reset_index()
                     conteo_tipos.columns = ['Tipo de procedimiento', 'Frecuencia']
                     st.dataframe(conteo_tipos, width='stretch', hide_index=True)
+
+if b_html:
+    if not any([ingreso, cuadrante, categoria, tipo, hinicio, hfinal, mes, ano, finicio, ffinal, calle, palabra, comisaria]):
+        st.error("Por favor selecciona al menos un filtro")
+    else:
+        try:
+            df = pd.read_csv('info.csv',sep=';',engine='python')
+            df_filtrado = df.copy()
+            df_filtrado['FECHA Y HORA'] = pd.to_datetime(df_filtrado['FECHA Y HORA'])
+            ## Filtro la base de datos ##
+            if ingreso:
+                df_filtrado = df_filtrado[df_filtrado['CANAL DE INGRESO'].isin(ingreso)]
+            if cuadrante:
+                df_filtrado = df_filtrado[df_filtrado['CUADRANTE'].isin(cuadrante)]
+            if categoria:
+                df_filtrado = df_filtrado[df_filtrado['CATEGORIA'] == categoria]
+            if tipo:
+                df_filtrado = df_filtrado[df_filtrado['TIPO DE PROCEDIMIENTO'].isin(tipo)]
+            if mes:
+                df_filtrado = df_filtrado[df_filtrado['FECHA Y HORA'].dt.month == mes]
+            if ano:
+                df_filtrado = df_filtrado[df_filtrado['FECHA Y HORA'].dt.year == ano]
+            if hinicio and hfinal and hinicio > hfinal:
+                df_filtrado = df_filtrado[(df_filtrado['FECHA Y HORA'].dt.hour >= hinicio) | (df_filtrado['FECHA Y HORA'].dt.hour < hfinal)]
+            if hinicio and hfinal and hinicio < hfinal:
+                df_filtrado = df_filtrado[(df_filtrado['FECHA Y HORA'].dt.hour >= hinicio) & (df_filtrado['FECHA Y HORA'].dt.hour < hfinal)]
+            if hinicio and not hfinal:
+                df_filtrado = df_filtrado[df_filtrado['FECHA Y HORA'].dt.hour >= hinicio]
+            if hfinal and not hinicio:
+                df_filtrado = df_filtrado[df_filtrado['FECHA Y HORA'].dt.hour < hfinal]
+            if finicio:
+                df_filtrado = df_filtrado[df_filtrado['FECHA Y HORA'].dt.date >= finicio]
+            if ffinal:
+                df_filtrado = df_filtrado[df_filtrado['FECHA Y HORA'].dt.date <= ffinal]
+            if calle:
+                df_filtrado = df_filtrado[df_filtrado['CALLE'].str.contains(calle, case=False, na=False) | df_filtrado['CALLE QUE INTERSECTA'].str.contains(calle, case=False, na=False)]
+            if numeracion:
+                df_filtrado = df_filtrado[df_filtrado['NUMERACIÓN'].str.contains(numeracion, case=False, na=False)]
+            if palabra:
+                df_filtrado = df_filtrado[df_filtrado['INFORME'].str.contains(palabra, case=False, na=False) | df_filtrado['DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)'].str.contains(palabra, case=False, na=False)]
+            if comisaria:
+                df_filtrado = df_filtrado[df_filtrado['COMISARIA'] == comisaria]
+
+            df_filtrado = df_filtrado[df_filtrado['COORDENADAS'].notna() & (df_filtrado['COORDENADAS'].str.strip() != '')]
+            df_filtrado[['LATITUD', 'LONGITUD']] = df_filtrado['COORDENADAS'].str.split(',', expand=True)
+            # 1. Obtener los puntos de la consulta
+            columnas = [
+                "FECHA Y HORA",
+                "TIPO DE PROCEDIMIENTO",
+                "CUADRANTE",
+                "LATITUD",
+                "LONGITUD"
+            ]
+
+            datos = df_filtrado[columnas].copy()
+
+            # Limpiar coordenadas ausentes o inválidas
+            datos["LATITUD"] = pd.to_numeric(
+                datos["LATITUD"], errors="coerce"
+            )
+            datos["LONGITUD"] = pd.to_numeric(
+                datos["LONGITUD"], errors="coerce"
+            )
+
+            datos = datos.dropna(
+                subset=["LATITUD", "LONGITUD"]
+            )
+
+            # 2. Construir la lista de puntos
+            puntos = []
+
+            for _, fila in datos.iterrows():
+                puntos.append({
+                    "fecha": str(fila["FECHA Y HORA"]),
+                    "cuadrante": str(fila["CUADRANTE"]),
+                    "lat": float(fila["LATITUD"]),
+                    "lon": float(fila["LONGITUD"]),
+                    "tipo": (
+                        str(fila["TIPO DE PROCEDIMIENTO"])
+                        if pd.notna(fila["TIPO DE PROCEDIMIENTO"])
+                        else "Sin especificar"
+                    )
+                })
+
+            # 3. Convertir los puntos a JSON
+            puntos_json = json.dumps(
+                puntos,
+                ensure_ascii=False,
+                allow_nan=False
+            )
+
+            # 4. Leer la plantilla HTML
+            ruta_html = Path("./mapa_nunoa.html")
+
+            plantilla = ruta_html.read_text(encoding="utf-8")
+
+            # 5. Sustituir exclusivamente la constante points
+            html_final, reemplazos = re.subn(
+                r"const points = \[.*?\];",
+                lambda _: f"const points = {puntos_json};",
+                plantilla,
+                count=1,
+                flags=re.DOTALL
+            )
+
+            if reemplazos != 1:
+                st.error(
+                    "No se encontró la sección const points "
+                    "en la plantilla HTML."
+                )
+                st.stop()
+
+            # 6. Actualizar el total mostrado en el encabezado
+            html_final = html_final.replace(
+                "Total Puntos: N PUNTOS",
+                f"Total Puntos: {len(puntos):,}".replace(",", ".")
+            )
+
+            # 7. Ofrecer la descarga
+            st.download_button(
+                label="Descargar mapa HTML",
+                data=html_final.encode("utf-8"),
+                file_name="mapa_consulta.html",
+                mime="text/html"
+            )
+        except FileNotFoundError:
+            st.error("No se encontró el archivo con la información")
