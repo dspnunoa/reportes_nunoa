@@ -100,6 +100,14 @@ df['CUADRANTE'] = df['CUADRANTE'].apply(fcuadrante)
 df['CANAL DE INGRESO'] = df['CANAL DE INGRESO'].apply(fcanalingreso)
 #df['CALLE'] = df['CALLE'].apply(fcalle)
 
+
+def ftipopr(valor):
+    if valor == 'Solicitud de Nylon y/o Sacos de Arena ':
+        return 'Otros'
+    return valor
+df['TIPO DE PROCEDIMIENTO'] = df['TIPO DE PROCEDIMIENTO'].apply(ftipopr)
+
+
 ## Imprimo los elementos diferentes que hay en un campo en especifico (para corregir errores) ##
 lfinal = ['7X3 delitos violentos', 'Accidente de tránsito (choque/colisión/atropello)', 'Acera en mal estado', 'Actividad sospechosa', 'Agresión', 'Alarma activada', 'Alcantarilla colapsada', 'Amenazas', 'Anegamiento de calle y paso bajo nivel', 'Anegamiento domicilios', 'Apoyo a Bomberos', 'Apoyo a Carabineros', 'Apoyo a SAMU', 'Artefacto explosivo o paquete sospechoso', 'Botar chicle, colillas o desechos en la vía pública', 'Cables a baja altura / Cables cortados', 'Caida de arbol', 'Carpa o Ruco en BNUP', 'Circuito y luminarias dañadas', 'Comercio ambulante Ilegal', 'Consumo de alcohol en vía pública', 'Consumo de drogas', 'Control de Transito', 'Corte energía eléctrica', 'Corte suministro de agua potable', 'Daños propiedad privada', 'Daños propiedad pública', 'Delito sexual', 'Desganche arbolado', 'Detención ciudadana', 'Detenidos', 'Disparos', 'Disturbios', 'Ebriedad', 'Emanación de gas/ Derrame o Materiales peligrosos', 
 'Emergencia de salud', 'Filtración agua potable', 'Fiscalizacion Retiro de circulación de vehiculo motorizado', 'Fiscalizacion Ruidos Molestos', 'Fiscalizaciones (BNUP, comercio, etc)', 'Fiscalización alcoholes', 'Fiscalización aparcadores ilegales', 'Fiscalización de tránsito', 'Fiscalización ingesta de alcohol en vía pública', 'Fuegos artificiales', 'Homicidio', 'Homicidio Frustrado', 'Hurto', 
@@ -114,6 +122,7 @@ lprod = list(df['TIPO DE PROCEDIMIENTO'].unique())
 # print(list(df['CANAL DE INGRESO'].unique()))
 # print('CATEGORIAS ENCONTRADAS')
 # print(list(df['CATEGORIA'].unique()))
+
 
 ## Chequeo entradas mal ingresadas ##
 for index, row in df.iterrows():
