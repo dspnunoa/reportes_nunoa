@@ -1,7 +1,10 @@
 from datetime import date
-from sqlalchemy import text
+import time
 import pandas as pd
 import streamlit as st
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+
 
 st.set_page_config(page_title="Data Histórica", layout="wide")
 st.logo("./logo.png",size='large',icon_image="./logo.png")
@@ -15,6 +18,49 @@ if not check_auth():
 
 # Conexión
 conn = st.connection("neon", type="sql")
+
+# Función que controla errores
+def consultar_df(consulta, parametros=None, intentos=2):
+    """
+    Ejecuta una consulta SQL y devuelve un DataFrame.
+    Si falla la conexión, reintenta una vez.
+    """
+    conexion_db = st.connection("neon", type="sql")
+    ultimo_error = None
+
+    for intento in range(intentos):
+        try:
+            with conexion_db.engine.connect() as conexion:
+                return pd.read_sql_query(
+                    consulta,
+                    conexion,
+                    params=parametros or {}
+                )
+
+        except (SQLAlchemyError, pd.errors.DatabaseError) as error:
+            ultimo_error = error
+
+            if intento < intentos - 1:
+                try:
+                    conexion_db.reset()
+                except Exception:
+                    pass
+
+                time.sleep(2)
+
+    st.error(
+        "No pudimos conectar con la base de datos. "
+        "Es posible que esté iniciándose después de un período "
+        "de inactividad. Espera unos segundos e inténtalo nuevamente."
+    )
+
+    with st.expander("Detalles técnicos"):
+        st.code(str(ultimo_error))
+
+    if st.button("Reintentar conexión", key="reintentar_neon"):
+        st.rerun()
+
+    st.stop()
 
 # Funciones
 @st.cache_data(ttl=3600)
@@ -35,8 +81,8 @@ def obtener_opciones(_conn,columna):
         ORDER BY {columna}
     """)
 
-    with _conn.engine.connect() as conexion:
-        resultado = pd.read_sql_query(consulta,conexion)
+    resultado = consultar_df(consulta)
+
     return resultado[columna].tolist()
 
 @st.cache_data(ttl=3600)
@@ -46,8 +92,8 @@ def obtener_rango_fechas(_conn):
                MAX(fecha) AS fecha_max
         FROM public.historico
     """)
-    with _conn.engine.connect() as conexion:
-        resultado = pd.read_sql_query(consulta, conexion)
+    resultado = consultar_df(consulta)
+
     return resultado.iloc[0]["fecha_min"], resultado.iloc[0]["fecha_max"]
 
 # Filtros
@@ -162,10 +208,11 @@ sql_conteo = text(f"""
     {where_sql}
 """)
 
-with conn.engine.connect() as conexion:
-    total = conexion.execute(
-        sql_conteo, parametros
-    ).scalar_one()
+resultado_conteo = consultar_df(
+    sql_conteo,
+    parametros
+)
+total = int(resultado_conteo.iloc[0, 0])
 
 # --------------------------------------------------
 # PAGINACIÓN
@@ -244,12 +291,10 @@ parametros_pagina = {
     "offset": offset,
 }
 
-with conn.engine.connect() as conexion:
-    df = pd.read_sql_query(
-        sql_datos,
-        conexion,
-        params=parametros_pagina
-    )
+df = consultar_df(
+    sql_datos,
+    parametros_pagina
+)
 
 st.dataframe(
     df,
