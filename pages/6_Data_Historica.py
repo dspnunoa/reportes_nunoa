@@ -53,19 +53,18 @@ def obtener_rango_fechas(_conn):
 # Filtros
 st.caption("Filtros")
 
-filtrar_fecha = st.checkbox("Filtrar por fecha")
 
 fecha_desde = None
 fecha_hasta = None
 
+fecha_min, fecha_max = obtener_rango_fechas(conn)
 
-if filtrar_fecha:
-    fecha_min, fecha_max = obtener_rango_fechas(conn)
+if pd.notna(fecha_min) and pd.notna(fecha_max):
+    fecha_min = pd.Timestamp(fecha_min).date()
+    fecha_max = pd.Timestamp(fecha_max).date()
 
-    if pd.notna(fecha_min) and pd.notna(fecha_max):
-        fecha_min = pd.Timestamp(fecha_min).date()
-        fecha_max = pd.Timestamp(fecha_max).date()
-
+    c1, c2 = st.columns(2)
+    with c1:
         fecha_desde = st.date_input(
             "Fecha de inicio",
             value=fecha_min,
@@ -73,7 +72,7 @@ if filtrar_fecha:
             max_value=fecha_max,
             key="fecha_inicio"
         )
-
+    with c2:
         fecha_hasta = st.date_input(
             "Fecha de término",
             value=fecha_max,
@@ -82,12 +81,12 @@ if filtrar_fecha:
             key="fecha_termino"
         )
 
-        if fecha_desde > fecha_hasta:
-            st.warning(
-                "La fecha de inicio debe ser anterior "
-                "o igual a la fecha de término."
-            )
-            st.stop()
+    if fecha_desde > fecha_hasta:
+        st.warning(
+            "La fecha de inicio debe ser anterior "
+            "o igual a la fecha de término."
+        )
+        st.stop()
 
 # Filtros categóricos
 def opciones_filtro(columna, etiqueta):
@@ -99,13 +98,18 @@ def opciones_filtro(columna, etiqueta):
         key=f"filtro_{columna}"
     )
 
+c3, c4, c5, c6 = st.columns(4)
+with c3:
+    categoria = opciones_filtro("categoria", "Categoría")
 
-categoria = opciones_filtro("categoria", "Categoría")
-tipo = opciones_filtro(
+with c4:
+    tipo = opciones_filtro(
     "tipo_de_procedimiento", "Tipo de procedimiento"
 )
-cuadrante = opciones_filtro("cuadrante", "Cuadrante")
-canal = opciones_filtro("canal_de_ingreso", "Canal de ingreso")
+with c5:
+    cuadrante = opciones_filtro("cuadrante", "Cuadrante")
+with c6:
+    canal = opciones_filtro("canal_de_ingreso", "Canal de ingreso")
 
 busqueda = st.text_input(
     "Buscar texto",
@@ -115,7 +119,7 @@ busqueda = st.text_input(
 condiciones = []
 parametros = {}
 
-if filtrar_fecha and fecha_desde and fecha_hasta:
+if fecha_desde and fecha_hasta:
     condiciones.append("fecha >= :fecha_desde")
     condiciones.append("fecha <= :fecha_hasta")
     parametros["fecha_desde"] = fecha_desde
@@ -138,7 +142,7 @@ if busqueda.strip():
             OR calle ILIKE :busqueda
             OR direccion_procedimiento ILIKE :busqueda
             OR descripcion_del_procedimiento ILIKE :busqueda
-            OR nombre_de_recurrente ILIKE :busqueda
+            OR informe ILIKE :busqueda
         )
     """)
     parametros["busqueda"] = f"%{busqueda.strip()}%"
@@ -169,11 +173,12 @@ with conn.engine.connect() as conexion:
 
 st.subheader(f"Resultados: {total:,}")
 
-tamano_pagina = st.selectbox(
-    "Registros por página",
-    [50, 100, 250, 500],
-    index=1
-)
+# tamano_pagina = st.selectbox(
+#     "Registros por página",
+#     [50, 100, 250, 500],
+#     index=1
+# )
+tamano_pagina = 250
 
 total_paginas = max(
     1, (total + tamano_pagina - 1) // tamano_pagina
@@ -217,16 +222,16 @@ offset = st.session_state.pagina * tamano_pagina
 
 sql_datos = text(f"""
     SELECT
-        nro,
-        fecha,
-        hora,
-        categoria,
-        tipo_de_procedimiento,
-        calle,
-        direccion_procedimiento,
-        cuadrante,
-        canal_de_ingreso,
-        estado_del_procedimiento
+        nro "Nro.",
+        fecha AS "Fecha",
+        hora AS "Hora",
+        categoria AS "Categoría",
+        tipo_de_procedimiento AS "Tipo de Procedimiento",
+        descripcion_del_procedimiento AS "Descripción",
+        cuadrante AS "Cuadrante",
+        canal_de_ingreso AS "Canal de Ingreso",
+        estado_del_procedimiento AS "Estado del Procedimiento",
+        informe AS "Informe"
     FROM public.historico
     {where_sql}
     ORDER BY fecha ASC NULLS LAST, nro ASC
