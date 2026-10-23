@@ -85,6 +85,10 @@ def fcanalingreso(valor):
         return 'OTROS'
     return valor
 
+def ftipo(valor):
+    if valor == 'Solicitud de sacos y nylon ' or valor == 'Solicitud de Nylon ' or valor == 'ENTREGA DE MATERIAL ' or valor == 'OTROS ' or valor == 'Solicita Nylon y/o sacos de arena ':
+        return 'Otros'
+    return valor
 ## Para verificar que todo el archivo tenga la misma estructua, comparo los campos del nuevo archivo con los del actual ##
 campos = list(df.columns)
 campos_final = ['NRO','ID ASIGNADO /TICKET','FECHA Y HORA','OPERADOR','CANAL DE INGRESO','TIPO DE RECURRENTE','AREA O SECCIÓN DEL RECURRENTE','NOMBRE DE RECURRENTE','TELEFONO RECURRENTE','DESCRIPCION DEL PROCEDIMIENTO (DETALLES RELEVANTES)','CATEGORIA','TIPO DE PROCEDIMIENTO','CALLE','NUMERACIÓN','CALLE QUE INTERSECTA','LUGAR PÚBLICO /  PRIVADO','ACLARATORIA DE LA UBICACIÓN','CUADRANTE','RADIOPERADOR DE TURNO','NRO DE MOVIL','INSPECTOR ASIGNADO AL PROCEDIMIENTO','ESTADO DEL PROCEDIMIENTO','HORA DE ASIGNACION A INSPECTOR','HORA DE ARRIBO','HORA DE TERMINO','INFORME','FINALIZACIÓN','APOYO/ASISTENCIA','COMISARIA','SEREMI','DERIVACIÓN A OTRA COMUNA',"OBSERVACIONES , DATOS GENERALES , ADICIONALES",'CONNOTACIÓN','COORDENADAS']
@@ -98,14 +102,11 @@ df = df[['NRO','ID ASIGNADO /TICKET','FECHA Y HORA','OPERADOR','CANAL DE INGRESO
 ## Aplico las funciones al nuevo archivo (En caso de ser necesario)##
 df['CUADRANTE'] = df['CUADRANTE'].apply(fcuadrante)
 df['CANAL DE INGRESO'] = df['CANAL DE INGRESO'].apply(fcanalingreso)
+#df['TIPO DE PROCEDIMIENTO'] = df['TIPO DE PROCEDIMIENTO'].apply(ftipo)
 #df['CALLE'] = df['CALLE'].apply(fcalle)
 
 
-def ftipopr(valor):
-    if valor == 'Solicitud de Nylon y/o Sacos de Arena ':
-        return 'Otros'
-    return valor
-df['TIPO DE PROCEDIMIENTO'] = df['TIPO DE PROCEDIMIENTO'].apply(ftipopr)
+
 
 
 ## Imprimo los elementos diferentes que hay en un campo en especifico (para corregir errores) ##
