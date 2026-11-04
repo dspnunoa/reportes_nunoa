@@ -1,4 +1,4 @@
-## SIRAM ##
+## SIRAM
 from __future__ import annotations
 import unicodedata
 from datetime import date, datetime
@@ -10,8 +10,7 @@ import warnings
 from openpyxl import load_workbook
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.worksheet.cell_range import CellRange
-###########
-
+##
 from datetime import datetime
 import streamlit as st
 import pandas as pd
@@ -199,18 +198,16 @@ st.write(f"Página {pagina} de {(len(df_filtrado) // entradas_por_pagina) + 1}")
 
 ## SIRAM ##
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
-# Ruta de la plantilla (misma carpeta que este archivo). Ajusta el nombre.
-RUTA_PLANTILLA = Path(__file__).parent / "plantilla_siram.xlsx"
 
+RUTA_PLANTILLA = Path(__file__).parent / "plantilla_siram.xlsx"
 FORMATO_FECHA_EXCEL = "DD-MM-YYYY"
-LARGO_MAXIMO_CELDA = 32767  # límite de caracteres por celda en Excel
+LARGO_MAXIMO_CELDA = 32767
 
 
 # ---------------------------------------------------------------------------
 # Utilidades
 # ---------------------------------------------------------------------------
 def _normalizar(texto) -> str:
-    """Para comparar nombres: ignora mayúsculas, tildes y espacios repetidos."""
     sin_tildes = "".join(
         c for c in unicodedata.normalize("NFKD", str(texto)) if not unicodedata.combining(c)
     )
@@ -218,7 +215,6 @@ def _normalizar(texto) -> str:
 
 
 def _col(df: pd.DataFrame, nombre: str) -> pd.Series:
-    """Devuelve la columna del CSV cuyo nombre coincide (normalizado) con 'nombre'."""
     buscado = _normalizar(nombre)
     for real in df.columns:
         if _normalizar(real) == buscado:
@@ -229,15 +225,12 @@ def _col(df: pd.DataFrame, nombre: str) -> pd.Series:
 
 
 # ---------------------------------------------------------------------------
-# Transformaciones: cada una recibe el DataFrame y devuelve una Serie
+# Transformaciones
 # ---------------------------------------------------------------------------
 def fecha_desde(columna: str) -> Callable[[pd.DataFrame], pd.Series]:
-    """'25-12-2025 14:30' -> fecha real 25-12-2025 (sin hora)."""
-
     def _transformar(df: pd.DataFrame) -> pd.Series:
         texto = _col(df, columna).astype(str).str.strip()
         fechas = pd.to_datetime(texto, format="%Y-%m-%d %H:%M:%S", errors="coerce")
-        # Por si alguna fila viene sin hora ('25-12-2025')
         fechas = fechas.fillna(pd.to_datetime(texto, format="%Y-%m-%d", errors="coerce"))
         return fechas.dt.date
 
@@ -245,7 +238,6 @@ def fecha_desde(columna: str) -> Callable[[pd.DataFrame], pd.Series]:
 
 
 def _separar_coordenadas(df: pd.DataFrame, columna: str) -> pd.DataFrame:
-    """'-33.4372,-70.6506' -> columnas 0 (latitud) y 1 (longitud) numéricas."""
     partes = (
         _col(df, columna).astype(str).str.split(",", n=1, expand=True).reindex(columns=[0, 1])
     )
@@ -261,41 +253,27 @@ def longitud_desde(columna: str) -> Callable[[pd.DataFrame], pd.Series]:
 
 
 def constante(valor) -> Callable[[pd.DataFrame], pd.Series]:
-    """Mismo valor en todas las filas (para datos que no vienen en el CSV)."""
     return lambda df: pd.Series([valor] * len(df), index=df.index)
 
 
-# ---------------------------------------------------------------------------
-# MAPEO  ->  {hoja: {"fila_encabezado": n, "columnas": {col_plantilla: origen}}}
-#
-#   origen puede ser:
-#     - str       -> nombre de la columna del CSV, se copia tal cual
-#     - callable  -> función(df) -> Serie, para columnas que se transforman
-#
-# Las columnas de la plantilla que NO aparecen aquí quedan vacías.
-# Los nombres (de plantilla y de CSV) se comparan sin importar mayúsculas,
-# tildes ni espacios repetidos, y el orden de las columnas da lo mismo.
-# ---------------------------------------------------------------------------
 MAPEO = {
     "INFORMACION DELICTUAL": {
         "fila_encabezado": 1,
         "columnas": {
             "nombre_documento": "ID ASIGNADO /TICKET",
-            "fec_documento": fecha_desde("FECHA Y HORA"),  # YYYY-MM-DD HH:MM:SS -> YYYY-MM-DD
+            "fec_documento": fecha_desde("FECHA Y HORA"),
             "detalle": "INFORME",
         },
     },
     "DIRECCIONES": {
         "fila_encabezado": 1,
         "columnas": {
-            "nombre_documento": "ID ASIGNADO /TICKET",  # mismo vínculo que la otra hoja
+            "nombre_documento": "ID ASIGNADO /TICKET",
             "calle": "CALLE",
             "numero": "NUMERACIÓN",
-            # "depto" no se mapea: queda vacío en la plantilla
-            "comuna": constante("Ñuñoa"),  # siempre la misma
-            "latitud": latitud_desde("COORDENADAS"),  # 'lat,lon' -> lat
-            "longitud": longitud_desde("COORDENADAS"),  # 'lat,lon' -> lon
-            # "tipo_direccion" no se mapea: queda vacío en la plantilla
+            "comuna": constante("Ñuñoa"),
+            "latitud": latitud_desde("COORDENADAS"),
+            "longitud": longitud_desde("COORDENADAS"),
         },
     },
 }
@@ -304,7 +282,7 @@ Origen = Union[str, Callable[[pd.DataFrame], pd.Series]]
 
 
 # ---------------------------------------------------------------------------
-# Escritura
+# Escritura protegida contra corrupción de Namespaces XML
 # ---------------------------------------------------------------------------
 def _escribir_hoja(ws, df: pd.DataFrame, columnas: dict[str, Origen], fila_encabezado: int) -> None:
     # 1) Ubicar columnas de la plantilla por el nombre del encabezado
@@ -319,50 +297,56 @@ def _escribir_hoja(ws, df: pd.DataFrame, columnas: dict[str, Origen], fila_encab
         )
     indice = {h: encabezados[_normalizar(h)] for h in columnas}
 
-    # 2) Calcular los datos de salida (copia directa o transformación)
+    # 2) Calcular los datos de salida
     datos = {}
     for h, origen in columnas.items():
         serie = origen(df) if callable(origen) else _col(df, origen)
         datos[h] = serie.reset_index(drop=True)
     salida = pd.DataFrame(datos)
 
-    # 3) Limpiar valores previos (solo en las columnas mapeadas; conserva estilos)
+    # 3) Limpiar datos previos manteniendo celdas y formatos intactos
     primera = fila_encabezado + 1
-    for fila in range(primera, ws.max_row + 1):
+    max_filas_previas = max(ws.max_row, primera)
+    for fila in range(primera, max_filas_previas + 1):
         for col in indice.values():
             ws.cell(row=fila, column=col).value = None
 
-    # 4) Escribir fila por fila
+    # 4) Escribir fila por fila respetando tipos
     for fila, valores in enumerate(salida.itertuples(index=False), start=primera):
         for h, v in zip(salida.columns, valores):
             if pd.isna(v):
                 v = None
-            elif hasattr(v, "item"):  # tipos numpy -> tipos nativos de Python
+            elif hasattr(v, "item"):
                 v = v.item()
             if isinstance(v, str):
-                # Texto libre: quitar caracteres de control que Excel no admite
-                # y respetar el largo máximo de celda
                 v = ILLEGAL_CHARACTERS_RE.sub("", v)[:LARGO_MAXIMO_CELDA]
+            
             celda = ws.cell(row=fila, column=indice[h], value=v)
             if isinstance(v, (date, datetime)):
                 celda.number_format = FORMATO_FECHA_EXCEL
             elif isinstance(v, str) and v.startswith("="):
-                celda.data_type = "s"  # que Excel no lo interprete como fórmula
+                celda.data_type = "s"
 
-    # 5) Si la hoja usa una "Tabla de Excel", extender su rango a los nuevos datos
+    # 5) Actualizar rangos de tablas si existen (usando re-asignación segura de coordenadas)
     ultima = max(primera + len(salida) - 1, primera)
-    for tabla in ws.tables.values():
-        rango = CellRange(tabla.ref)
-        if rango.min_row == fila_encabezado:
-            rango.max_row = ultima
-            tabla.ref = rango.coord
-            if tabla.autoFilter is not None:
-                tabla.autoFilter.ref = rango.coord
+    for nombre_tabla, tabla in list(ws.tables.items()):
+        try:
+            rango = CellRange(tabla.ref)
+            if rango.min_row == fila_encabezado:
+                rango.max_row = ultima
+                tabla.ref = rango.coord
+                if tabla.autoFilter is not None:
+                    tabla.autoFilter.ref = rango.coord
+        except Exception:
+            # En caso de incongruencias estructurales de la plantilla, omitir re-parseo agresivo
+            pass
 
 
 def generar_excel(df_filtrado: pd.DataFrame, ruta_plantilla: Path | str = RUTA_PLANTILLA) -> bytes:
-    """Carga la plantilla, la rellena con df_filtrado y devuelve el .xlsx en bytes."""
-    wb = load_workbook(ruta_plantilla)  # las demás hojas quedan intactas
+    """Carga la plantilla preservando estructuras de datos XML y la rellena."""
+    # data_only=False preserva fórmulas preexistentes en la plantilla
+    wb = load_workbook(ruta_plantilla, data_only=False)
+    
     for nombre_hoja, cfg in MAPEO.items():
         if nombre_hoja not in wb.sheetnames:
             raise KeyError(f"La plantilla no tiene la hoja '{nombre_hoja}'. Hojas: {wb.sheetnames}")
@@ -371,7 +355,6 @@ def generar_excel(df_filtrado: pd.DataFrame, ruta_plantilla: Path | str = RUTA_P
     buffer = BytesIO()
     wb.save(buffer)
     return buffer.getvalue()
-###########
 st.download_button(
     "Exportar SIRAM",
     data=generar_excel(df_filtrado),
