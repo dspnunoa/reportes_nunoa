@@ -12,3 +12,4 @@ scipy>=1.15.3
 sqlalchemy
 psycopg[binary]
 openpyxl
+scikit-learn
