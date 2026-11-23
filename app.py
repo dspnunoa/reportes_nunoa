@@ -61,6 +61,7 @@ st.write("""
 - 🗃️ Búsquedas personalizadas por filtros en tabla de datos
 - 📝 Generar informes estandarizados y automatizados
 - ⚖️ Comparar tipos de procedimientos por período de tiempo
+- 🧭 Ver tendencias y patrones que ayuden a la toma de decisiones
 
 Selecciona una opción en el menú para comenzar.
 """)
@@ -101,4 +102,18 @@ st.markdown("---")
 st.header("⚖️ Comparador Períodos")
 st.write("""
         Gráfica comparativa del comportamiento de los tipos de procedimientos. Seleccione una categoría o un conjunto de tipos de procedimientos y un rango de fechas (verificar que este rango de fechas tenga información en más de un año diferente, para que lo que se muestre tenga sentido). Se desplegará un gráfico de barras con todos los procedimientos seleccionados por año, una tabla con lo anterior, y además por cada tipo de procedimiento un gráfico de barras con el comportamiento semanal en cada año disponible.
+""")
+
+st.markdown("---")
+st.header("🗃️ Data Histórica")
+st.write("""
+        Consolidado de reportes de los años 2023 y 2024. Permite la búsqueda por filtros de fecha de inicio y término, categoría, tipo de procedimiento, cuadrante, canal de ingreso y por palabras clave (dirección, calle, descripción).
+""")
+
+st.markdown("---")
+st.header("🧭 Predicción y Planificación de Operativos")
+st.write("""
+        Análisis detallado para las veinte calles con mayor cantidad de procedimientos. Se puede seleccionar de forma personalizada el período de tiempo que se desee analizar. Para cada una de esas calles se muestra su número de reportes en el período de tiempo, como el tipo de procedimiento más común, la hora pico, distribución por tipos de procedimiento, distribución horaria y evolución temporal. Se incluye al final recomendaciones para los sectores críticos y con tendencias.
+
+        Para una fecha en específico (por defecto se selecciona la fecha más reciente con información disponible), se hace un análisis geo-referenciado en torno al comportamiento en los últimos 28 días, divididos y comparados en dos períodos de 14 días. Así se identifican focos de tres tipo: de estabilidad, de mejoría y de aumento. Se determinó un factor del veinte porciento (20%) como límite, de esta forma las zonas donde la diferencia entre períodos sea entre +20 y -20 porciento serán consideradas como estables. Zonas con más de 20 porciento de aumento son consideradas zonas en aumento y es donde se requiere intervención. Zonas con menos de -20 porciento de aumento son consideradas zonas de mejoría, donde considerablemente disminuyó la frecuencia de reportes en comparación de ambos períodos.
 """)
