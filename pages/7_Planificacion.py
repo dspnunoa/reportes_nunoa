@@ -271,7 +271,7 @@ df = cargar_datos()
 
 # ==================== PARÁMETROS ====================
 VENTANA_DIAS = 14
-EPS_METROS = 150          # distancia máxima entre reportes del mismo foco (~2 cuadras)
+EPS_METROS = 130          # distancia máxima entre reportes del mismo foco (~2 cuadras)
 MIN_REPORTES = 10         # reportes mínimos en la ventana actual para formar un foco
 CAMBIO_MIN = 0.20  
 
@@ -394,8 +394,7 @@ for _, f in df_focos.iterrows():
             locations=anillo,
             color=color, fill=True, fill_opacity=0.3, weight=2,
             tooltip=f"Foco {f['Foco']}: {f['Actual']} reportes ({f['Cambio %']:+.0f}%)",
-            popup=(f"<b>Actual:</b> {f['Actual']} | <b>Anterior:</b> {f['Anterior']}<br>"
-                   f"<b>Calles:</b> {f['Calles principales']}")
+            popup=(f"<b>Actual:</b> {f['Actual']} <b>Anterior:</b> {f['Anterior']}<br>")
         ).add_to(m)
 
 st.subheader("Tendencias y focos en los últimos 14 días")
