@@ -366,11 +366,11 @@ df_focos['Estado'] = df_focos['Cambio %'].apply(estado)
 COLORES = {'Aumento': '#d62728', 'Mejora': '#2ca02c', 'Estable': '#7f7f7f'}
 
 col1, col2, col3 = st.columns(3)
-col1.metric("🔴 Zonas en alza", int((df_focos['Estado'] == 'Aumento').sum()))
-col2.metric("🟢 Zonas en descenso", int((df_focos['Estado'] == 'Mejora').sum()))
+col1.metric("🔴 Zonas con aumento", int((df_focos['Estado'] == 'Aumento').sum()))
+col2.metric("🟢 Zonas con disminución", int((df_focos['Estado'] == 'Mejora').sum()))
 col3.metric("⚪ Zonas estables", int((df_focos['Estado'] == 'Estable').sum()))
 
-st.caption(f"Rojo: aumento ≥ +{CAMBIO_MIN:.0%} · Verde: mejora ≤ −{CAMBIO_MIN:.0%} · Gris: estable")
+st.caption(f"Rojo: aumento ≥ +{CAMBIO_MIN:.0%} · Verde: dismunución ≤ −{CAMBIO_MIN:.0%} · Gris: estable")
 
 m = folium.Map(location=[LAT_REF, LON_REF], zoom_start=14)
 c118 = [[-33.449669,-70.600419], [-33.448523,-70.593123], [-33.44795,-70.571537], [-33.453465,-70.570679], [-33.458979,-70.572309], [-33.454503,-70.580034], [-33.454718,-70.582824], [-33.455541,-70.586472], [-33.454646,-70.59999], [-33.449669,-70.600419]]
@@ -405,14 +405,14 @@ st_folium(m, width=1000, height=800)
 
 columnas = ['Zona', 'Actual', 'Anterior', 'Cambio %', 'Calles principales']
 
-st.subheader("🔴 Zonas en alza")
+st.subheader("🔴 Zonas con aumento")
 aumentos = df_focos[df_focos['Estado'] == 'Aumento'].sort_values('Cambio %', ascending=False)
 if aumentos.empty:
     st.info("No hay zonas en aumento.")
 else:
     st.dataframe(aumentos[columnas], width='stretch', hide_index=True)
 
-st.subheader("🟢 Zonas en descenso")
+st.subheader("🟢 Zonas con disminución")
 mejoras = df_focos[df_focos['Estado'] == 'Mejora'].sort_values('Cambio %')
 if mejoras.empty:
     st.info("No hay zonas en mejora.")
