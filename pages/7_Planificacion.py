@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="Planificación", layout="wide")
 st.logo("./logo.png",size='large',icon_image="./logo.png")
-st.title("🧭 Predicción y Planificación de Operativos")
+st.title("🧭 Comportamiento Delictual Comunal")
 # Validación por seguridad
 from auth import check_auth
 if not check_auth():
@@ -254,26 +254,28 @@ with st.expander("🚨 Análisis por Calle", expanded=False):
         else:
             st.info("ℹ️ No hay calles con tendencia creciente")
 
-
+tipos_procedimiento = ['Robo con violencia', 'Robo con intimidación', 'Robo por sorpresa' , 'Robo en lugar habitado']
 
 @st.cache_data
-def cargar_datos():
+def cargar_datos(tipos):
     df = pd.read_csv('info.csv', sep=';', engine='python')
     df['FECHA Y HORA'] = pd.to_datetime(df['FECHA Y HORA'], format='%Y-%m-%d %H:%M', errors='coerce')
     df[['LATITUD', 'LONGITUD']] = df['COORDENADAS'].str.split(',', expand=True).apply(lambda x: x.str.strip())
     df['LATITUD'] = pd.to_numeric(df['LATITUD'], errors='coerce')
     df['LONGITUD'] = pd.to_numeric(df['LONGITUD'], errors='coerce')
     df = df.dropna(subset=['FECHA Y HORA', 'LATITUD', 'LONGITUD']).copy()
+    df = df[df['TIPO DE PROCEDIMIENTO'].str.strip().isin(tipos)].copy()
     df['fecha'] = df['FECHA Y HORA'].dt.normalize()
     return df
 
-df = cargar_datos()
+df = cargar_datos(tuple(tipos_procedimiento))
 
 # ==================== PARÁMETROS ====================
 VENTANA_DIAS = 14
-EPS_METROS = 130          # distancia máxima entre reportes del mismo foco (~2 cuadras)
-MIN_REPORTES = 10         # reportes mínimos en la ventana actual para formar un foco
-CAMBIO_MIN = 0.20  
+EPS_METROS = 200          # distancia máxima entre reportes del mismo foco (~2 cuadras)
+MIN_REPORTES = 2         # reportes mínimos en la ventana actual para formar un foco
+CAMBIO_MIN = 0.20
+
 
 # ==================== COORDENADAS EN METROS ====================
 LAT_REF = df['LATITUD'].mean()
@@ -330,7 +332,7 @@ def construir_focos(df, fecha_corte):
         cambio = (n_act - n_ant) / max(n_ant, 1)
 
         resultados.append({
-            'Foco': int(foco_id),
+            'Zona': int(foco_id),
             'Actual': n_act,
             'Anterior': n_ant,
             'Cambio %': round(cambio * 100, 1),
@@ -339,6 +341,7 @@ def construir_focos(df, fecha_corte):
         })
 
     return pd.DataFrame(resultados)
+
 
 # ==================== INTERFAZ ====================
 
@@ -363,9 +366,9 @@ df_focos['Estado'] = df_focos['Cambio %'].apply(estado)
 COLORES = {'Aumento': '#d62728', 'Mejora': '#2ca02c', 'Estable': '#7f7f7f'}
 
 col1, col2, col3 = st.columns(3)
-col1.metric("🔴 Focos en aumento", int((df_focos['Estado'] == 'Aumento').sum()))
-col2.metric("🟢 Focos en mejora", int((df_focos['Estado'] == 'Mejora').sum()))
-col3.metric("⚪ Focos estables", int((df_focos['Estado'] == 'Estable').sum()))
+col1.metric("🔴 Zonas en alza", int((df_focos['Estado'] == 'Aumento').sum()))
+col2.metric("🟢 Zonas en descenso", int((df_focos['Estado'] == 'Mejora').sum()))
+col3.metric("⚪ Zonas estables", int((df_focos['Estado'] == 'Estable').sum()))
 
 st.caption(f"Rojo: aumento ≥ +{CAMBIO_MIN:.0%} · Verde: mejora ≤ −{CAMBIO_MIN:.0%} · Gris: estable")
 
@@ -393,25 +396,25 @@ for _, f in df_focos.iterrows():
         folium.Polygon(
             locations=anillo,
             color=color, fill=True, fill_opacity=0.3, weight=2,
-            tooltip=f"Foco {f['Foco']}: {f['Actual']} reportes ({f['Cambio %']:+.0f}%)",
+            tooltip=f"Zona {f['Zona']}: {f['Actual']} reportes ({f['Cambio %']:+.0f}%)",
             popup=(f"<b>Actual:</b> {f['Actual']} <b>Anterior:</b> {f['Anterior']}<br>")
         ).add_to(m)
 
-st.subheader("Tendencias y focos en los últimos 14 días")
+st.subheader("Focalización últimos 14 días")
 st_folium(m, width=1000, height=800)
 
-columnas = ['Foco', 'Actual', 'Anterior', 'Cambio %', 'Calles principales']
+columnas = ['Zona', 'Actual', 'Anterior', 'Cambio %', 'Calles principales']
 
-st.subheader("🔴 Focos en aumento")
+st.subheader("🔴 Zonas en alza")
 aumentos = df_focos[df_focos['Estado'] == 'Aumento'].sort_values('Cambio %', ascending=False)
 if aumentos.empty:
-    st.info("No hay focos en aumento.")
+    st.info("No hay zonas en aumento.")
 else:
     st.dataframe(aumentos[columnas], width='stretch', hide_index=True)
 
-st.subheader("🟢 Focos en mejora")
+st.subheader("🟢 Zonas en descenso")
 mejoras = df_focos[df_focos['Estado'] == 'Mejora'].sort_values('Cambio %')
 if mejoras.empty:
-    st.info("No hay focos en mejora.")
+    st.info("No hay zonas en mejora.")
 else:
     st.dataframe(mejoras[columnas], width='stretch', hide_index=True)
